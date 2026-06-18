@@ -2,177 +2,152 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NHL Card Arena & Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NHL Mini App Arena</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #0f141c; color: #fff; text-align: center; padding: 20px; margin: 0; }
-        h1 { color: #00d2ff; text-shadow: 0 0 10px rgba(0,210,255,0.3); margin-bottom: 5px; }
+        body { font-family: 'Arial', sans-serif; background: #0b0f17; color: #fff; text-align: center; padding: 10px; margin: 0; user-select: none; }
+        .profile-box { background: #151f32; border: 1px solid #00d2ff; border-radius: 10px; max-width: 450px; margin: 0 auto 10px; padding: 10px; display: flex; justify-content: space-around; font-size: 12px; }
+        .stat-val { font-size: 16px; font-weight: bold; color: #00d2ff; }
         
-        /* СТИЛЬ ЛИЧНОГО КАБИНЕТА */
-        .profile-box {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            border: 1px solid #38bdf8;
-            border-radius: 12px;
-            max-width: 500px;
-            margin: 0 auto 20px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        .profile-stat { text-align: center; }
-        .stat-val { font-size: 20px; font-weight: bold; color: #38bdf8; }
-        .stat-lbl { font-size: 11px; color: #94a3b8; text-transform: uppercase; }
-        .win-rate { color: #4ade80; font-size: 24px; font-weight: bold; }
+        .scoreboard { background: #151f32; border: 2px solid #00ff88; border-radius: 12px; width: 240px; margin: 10px auto; padding: 5px; }
+        .match-score { font-size: 28px; font-family: monospace; color: #00ff88; }
+        .period-text { font-size: 12px; color: #ffb703; font-weight: bold; }
 
-        /* СТИЛЬ ХОККЕЙНОГО ТАБЛО */
-        .scoreboard {
-            background: #1e293b;
-            border: 3px solid #00d2ff;
-            border-radius: 15px;
-            width: 280px;
-            margin: 15px auto;
-            padding: 10px;
-            box-shadow: 0 0 20px rgba(0,210,255,0.2);
-        }
-        .match-score { font-size: 36px; font-weight: bold; font-family: 'Courier New', monospace; color: #00ff88; }
-        .period-text { font-size: 14px; color: #ffb703; text-transform: uppercase; letter-spacing: 2px; }
-
-        .section-title { font-size: 14px; margin: 20px 0 10px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; }
-        .card-container { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 15px; }
+        .section-title { font-size: 12px; margin: 15px 0 5px; color: #8892b0; text-transform: uppercase; }
+        .card-container { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
         
-        .card {
-            background: #172237;
-            border: 2px solid #233554;
-            border-radius: 10px;
-            padding: 12px;
-            width: 125px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .card:hover { transform: translateY(-3px); border-color: #00d2ff; }
-        .card.selected { border-color: #00ff88; box-shadow: 0 0 15px rgba(0,255,136,0.3); background: #0f2d24; }
-        .card-emoji { font-size: 32px; margin-bottom: 5px; }
-        .card-name { font-weight: bold; font-size: 13px; margin-bottom: 5px; height: 32px; display: flex; align-items: center; justify-content: center; }
-        .card-stat { font-size: 11px; color: #00d2ff; }
+        .card { background: #121a2e; border: 2px solid #233554; border-radius: 8px; padding: 8px; width: 95px; cursor: pointer; transition: 0.15s; }
+        .card.selected { border-color: #00ff88; background: #0c261c; box-shadow: 0 0 10px rgba(0,255,136,0.2); }
+        .card.tired .card-stat { color: #ff4655 !important; font-weight: bold; } /* ПОДСВЕТКА УСТАЛОСТИ КРАСНЫМ */
         
-        .btn {
-            background: linear-gradient(135deg, #00d2ff, #0066ff);
-            color: white; border: none; padding: 12px 35px; font-size: 16px;
-            font-weight: bold; border-radius: 25px; cursor: pointer; transition: 0.2s;
-        }
-        .btn:hover { transform: scale(1.05); }
-        .btn-reset { background: #ff4655; margin-top: 15px; display: none; }
+        .card-emoji { font-size: 24px; }
+        .card-name { font-weight: bold; font-size: 11px; margin: 4px 0; height: 26px; display: flex; align-items: center; justify-content: center; }
+        .card-stat { font-size: 10px; color: #00d2ff; }
         
-        #result-box { margin-top: 20px; padding: 15px; background: #172237; border-radius: 12px; display: none; border: 1px solid #233554; }
-        .duel-powers { font-size: 18px; color: #ffb703; margin: 5px 0; }
+        .btn { background: linear-gradient(135deg, #00d2ff, #0066ff); color: white; border: none; padding: 12px 40px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; width: 80%; max-width: 300px; }
+        .btn-reset { background: #ff4655; display: none; margin: 15px auto; }
+        
+        #result-box { margin-top: 15px; padding: 12px; background: #151f32; border-radius: 10px; display: none; border: 1px solid #233554; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <!-- ЛИЧНЫЙ КАБИНЕТ ИГРОКА -->
+    <!-- ПРОФИЛЬ -->
     <div class="profile-box">
-        <div class="profile-stat">
-            <div class="stat-val" id="stat-total">0</div>
-            <div class="stat-lbl">Матчей</div>
-        </div>
-        <div class="profile-stat">
-            <div class="stat-val" style="color: #4ade80;" id="stat-wins">0</div>
-            <div class="stat-lbl">Побед</div>
-        </div>
-        <div class="profile-stat">
-            <div class="stat-val" style="color: #94a3b8;" id="stat-draws">0</div>
-            <div class="stat-lbl">Ничьих</div>
-        </div>
-        <div class="profile-stat">
-            <div class="stat-val" style="color: #f87171;" id="stat-losses">0</div>
-            <div class="stat-lbl">Поражений</div>
-        </div>
-        <div class="profile-stat">
-            <div class="win-rate" id="stat-rate">0%</div>
-            <div class="stat-lbl">Винрейт</div>
-        </div>
+        <div><div class="stat-val" id="st-total">0</div><div>Матчей</div></div>
+        <div><div class="stat-val" style="color:#4ade80;" id="st-wins">0</div><div>Побед</div></div>
+        <div><div class="stat-val" style="color:#f87171;" id="st-losses">0</div><div>Луз</div></div>
+        <div><div class="stat-val" id="st-rate">0%</div><div>Винрейт</div></div>
     </div>
-
-    <h1>🏒 NHL SCOREBOARD MVP 🏒</h1>
     
-    <!-- ТАБЛО МАТЧА -->
+    <!-- ТАБЛО -->
     <div class="scoreboard">
         <div class="period-text" id="period-display">1-й Период</div>
         <div class="match-score"><span id="p-goals">0</span> : <span id="b-goals">0</span></div>
-        <div style="font-size: 11px; color: #aaa;">ВЫ (Атака) vs БОТ (Защита)</div>
     </div>
     
     <div id="game-controls">
-        <div class="section-title">1. Выбери хоккеиста на раунд</div>
+        <div class="section-title">Твоё звено на этот матч (3Ф + 3З)</div>
         <div class="card-container" id="players-zone"></div>
 
-        <div class="section-title">2. Примени тактику</div>
+        <div class="section-title">Тактика на период (3 случайные карты)</div>
         <div class="card-container" id="actions-zone"></div>
 
-        <button class="btn" id="play-btn" onclick="nextPeriod()">СЫГРАТЬ ПЕРИОД</button>
+        <button class="btn" onclick="nextPeriod()">СЫГРАТЬ ПЕРИОД</button>
     </div>
 
-    <button class="btn btn-reset" id="reset-btn" onclick="resetMatch()">НАЧАТЬ НОВЫЙ МАТЧ</button>
+    <button class="btn btn-reset" id="reset-btn" onclick="startNewMatch()">СЛЕДУЮЩИЙ МАТЧ</button>
 
-    <!-- Окно событий периода -->
     <div id="result-box">
-        <h3 id="round-details">События на льду...</h3>
-        <div class="duel-powers">Общая сила: Вы (<span id="p-power">0</span>) vs Бот (<span id="b-power">0</span>)</div>
-        <p style="font-size: 12px; color: #aaa;">Бот выставил: <span id="bot-setup" style="color: #ff4655;">-</span></p>
+        <h4 id="round-details" style="margin:5px 0;">События...</h4>
+        <div style="font-size:12px; color:#ffb703;">Сила дуэли: Вы (<span id="p-power">0</span>) vs Бот (<span id="b-power">0</span>)</div>
+        <div style="font-size:11px; color:#aaa; margin-top:4px;">Выбор БОТА: <span id="bot-setup" style="color:#ff4655;">-</span></div>
     </div>
 
     <script>
+        let db = null;
+        let matchPlayers = []; // 6 хоккеистов на текущий матч
+        let fatiguedPlayers = []; // Кто уже играл и устал
+        
         let selectedPlayer = null;
         let selectedAction = null;
-        
         let currentPeriod = 1;
-        let playerGoals = 0;
-        let botGoals = 0;
+        let pGoals = 0, bGoals = 0;
 
-        // Инициализация статистики из памяти браузера
-        let stats = JSON.parse(localStorage.getItem('hockey_stats')) || { total: 0, wins: 0, draws: 0, losses: 0 };
+        let stats = JSON.parse(localStorage.getItem('h_stats')) || { total: 0, wins: 0, losses: 0 };
 
-        function updateProfileUI() {
-            document.getElementById('stat-total').innerText = stats.total;
-            document.getElementById('stat-wins').innerText = stats.wins;
-            document.getElementById('stat-draws').innerText = stats.draws;
-            document.getElementById('stat-losses').innerText = stats.losses;
-            
+        function updateStatsUI() {
+            document.getElementById('st-total').innerText = stats.total;
+            document.getElementById('st-wins').innerText = stats.wins;
+            document.getElementById('st-losses').innerText = stats.losses;
             let rate = stats.total > 0 ? Math.round((stats.wins / stats.total) * 100) : 0;
-            document.getElementById('stat-rate').innerText = `${rate}%`;
+            document.getElementById('st-rate').innerText = `${rate}%`;
         }
 
-        async function loadCards() {
-            const res = await fetch('/api/cards');
-            const data = await res.json();
+        // Загрузка базы данных игры при первом входе
+        async function initGame() {
+            const res = await fetch('/api/init_deck');
+            db = await res.json();
+            startNewMatch();
+        }
+
+        // НАЧАЛО НОВОГО МАТЧА: Собираем случайный состав
+        function startNewMatch() {
+            currentPeriod = 1; pGoals = 0; bGoals = 0;
+            fatiguedPlayers = [];
+            document.getElementById('p-goals').innerText = 0;
+            document.getElementById('b-goals').innerText = 0;
+            document.getElementById('period-display').innerText = "1-й Период";
+            document.getElementById('game-controls').style.display = 'block';
+            document.getElementById('reset-btn').style.display = 'none';
+            document.getElementById('result-box').style.display = 'none';
+
+            // Берем 3 случайных форварда и 3 защитника
+            let fKeys = Object.keys(db.forwards).sort(() => 0.5 - Math.random()).slice(0, 3);
+            let dKeys = Object.keys(db.defenders).sort(() => 0.5 - Math.random()).slice(0, 3);
             
-            const pZone = document.getElementById('players-zone');
-            pZone.innerHTML = '';
-            for (let id in data.players) {
-                let p = data.players[id];
-                pZone.innerHTML += `
-                    <div class="card" id="p-${id}" onclick="selectPlayer('${id}')">
+            matchPlayers = [];
+            fKeys.forEach(k => matchPlayers.push({id: k, ...db.forwards[k]}));
+            dKeys.forEach(k => matchPlayers.push({id: k, ...db.defenders[k]}));
+
+            renderPlayers();
+            dealActionCards();
+        }
+
+        function renderPlayers() {
+            const zone = document.getElementById('players-zone');
+            zone.innerHTML = '';
+            matchPlayers.forEach(p => {
+                let isTired = fatiguedPlayers.includes(p.id);
+                // Если уставший — добавляем класс 'tired', уменьшающий статы визуально
+                zone.innerHTML += `
+                    <div class="card ${isTired ? 'tired' : ''}" id="p-${p.id}" onclick="selectPlayer('${p.id}')">
                         <div class="card-emoji">${p.image}</div>
                         <div class="card-name">${p.name}</div>
-                        <div class="card-stat">АТК: ${p.attack} | ЗЩТ: ${p.defense}</div>
+                        <div class="card-stat">
+                            ${isTired ? 'УСТАЛ (-30%)' : `АТК:${p.attack} | ЗЩТ:${p.defense}`}
+                        </div>
                     </div>
                 `;
-            }
+            });
+        }
 
-            const aZone = document.getElementById('actions-zone');
-            aZone.innerHTML = '';
-            for (let id in data.actions) {
-                let a = data.actions[id];
-                aZone.innerHTML += `
-                    <div class="card" id="a-${id}" onclick="selectAction('${id}')">
+        // СДАЧА 3 СЛУЧАЙНЫХ КАРТ ТАКТИКИ НА ПЕРИОД
+        function dealActionCards() {
+            const zone = document.getElementById('actions-zone');
+            zone.innerHTML = '';
+            let aKeys = Object.keys(db.actions).sort(() => 0.5 - Math.random()).slice(0, 3);
+            
+            aKeys.forEach(k => {
+                let a = db.actions[k];
+                zone.innerHTML += `
+                    <div class="card" id="a-${k}" onclick="selectAction('${k}')">
                         <div class="card-emoji">${a.type === 'attack' ? '🔥' : '🧱'}</div>
                         <div class="card-name">${a.name}</div>
                         <div class="card-stat">${a.desc}</div>
                     </div>
                 `;
-            }
+            });
         }
 
         function selectPlayer(id) {
@@ -196,15 +171,19 @@
             const response = await fetch('/play', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ player_id: selectedPlayer, action_id: selectedAction })
+                body: JSON.stringify({ 
+                    player_id: selectedPlayer, 
+                    action_id: selectedAction,
+                    fatigued_players: fatiguedPlayers 
+                })
             });
             const result = await response.json();
 
-            if (result.winner === 'player') playerGoals++;
-            if (result.winner === 'bot') botGoals++;
+            if (result.winner === 'player') pGoals++;
+            if (result.winner === 'bot') bGoals++;
 
-            document.getElementById('p-goals').innerText = playerGoals;
-            document.getElementById('b-goals').innerText = botGoals;
+            document.getElementById('p-goals').innerText = pGoals;
+            document.getElementById('b-goals').innerText = bGoals;
             
             document.getElementById('result-box').style.display = 'block';
             document.getElementById('round-details').innerText = result.details;
@@ -212,13 +191,18 @@
             document.getElementById('b-power').innerText = result.bot_score;
             document.getElementById('bot-setup').innerText = result.bot_setup;
 
-            selectedPlayer = null;
-            selectedAction = null;
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            // Хоккеист устает после использования
+            if (!fatiguedPlayers.includes(selectedPlayer)) {
+                fatiguedPlayers.push(selectedPlayer);
+            }
 
+            selectedPlayer = null; selectedAction = null;
+            
             currentPeriod++;
             if (currentPeriod <= 3) {
                 document.getElementById('period-display').innerText = `${currentPeriod}-й Период`;
+                renderPlayers();
+                dealActionCards(); // Новая сдача карт на период!
             } else {
                 endMatch();
             }
@@ -226,47 +210,27 @@
 
         function endMatch() {
             document.getElementById('game-controls').style.display = 'none';
-            document.getElementById('reset-btn').style.display = 'inline-block';
-            
+            document.getElementById('reset-btn').style.display = 'block';
             stats.total++;
-            let finalTitle = "";
-            if (playerGoals > botGoals) {
-                finalTitle = "🏆 МАТЧ ЗАВЕРШЕН: ВЫ ПОБЕДИЛИ!";
+            
+            if (pGoals > bGoals) {
+                document.getElementById('round-details').innerText = "🏆 ФИНАЛЬНАЯ СИРЕНА: ВЫ ПОБЕДИЛИ!";
                 document.getElementById('period-display').innerText = "ПОБЕДА";
                 stats.wins++;
-            } else if (playerGoals < botGoals) {
-                finalTitle = "❌ МАТЧ ЗАВЕРШЕН: БОТ ОКАЗАЛСЯ СИЛЬНЕЕ.";
-                document.getElementById('period-display').innerText = "ПОРАЖЕНИЕ";
+            } else if (pGoals < bGoals) {
+                document.getElementById('round-details').innerText = "❌ ФИНАЛЬНАЯ СИРЕНА: ПОРАЖЕНИЕ.";
+                document.getElementById('period-display').innerText = "ЛУЗ";
                 stats.losses++;
             } else {
-                finalTitle = "🤝 МАТЧ ЗАВЕРШЕН: НИЧЬЯ!";
+                document.getElementById('round-details').innerText = "🤝 ОВЕРТАЙМ: НИЧЬЯ БОЕВАЯ!";
                 document.getElementById('period-display').innerText = "НИЧЬЯ";
-                stats.draws++;
             }
-            
-            // Сохраняем обновленную статику в память браузера
-            localStorage.setItem('hockey_stats', JSON.stringify(stats));
-            updateProfileUI();
-            
-            document.getElementById('round-details').innerText = finalTitle;
+            localStorage.setItem('h_stats', JSON.stringify(stats));
+            updateStatsUI();
         }
 
-        function resetMatch() {
-            currentPeriod = 1;
-            playerGoals = 0;
-            botGoals = 0;
-            document.getElementById('p-goals').innerText = 0;
-            document.getElementById('b-goals').innerText = 0;
-            document.getElementById('period-display').innerText = "1-й Период";
-            document.getElementById('game-controls').style.display = 'block';
-            document.getElementById('reset-btn').style.display = 'none';
-            document.getElementById('result-box').style.display = 'none';
-            loadCards();
-        }
-
-        // Запуск при старте страницы
-        updateProfileUI();
-        loadCards();
+        updateStatsUI();
+        initGame();
     </script>
 </body>
 </html>
