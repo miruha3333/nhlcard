@@ -8,12 +8,10 @@
         body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 10px; }
         .container { max-width: 800px; margin: 0 auto; }
         
-        /* Экраны SPA */
         .screen { display: none; animation: fadeIn 0.2s; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Кнопки */
         .btn { color: white; border: none; padding: 8px 16px; font-size: 14px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;}
         .btn:hover { opacity: 0.9; }
         .btn-primary { background-color: #3b82f6; }
@@ -21,42 +19,42 @@
         .btn-secondary { background-color: #475569; padding: 6px 12px; font-size: 13px; }
         .btn-play { background-color: #ef4444; font-size: 18px; padding: 12px 35px; border-radius: 8px; }
 
-        /* Компактная верхняя панель */
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #1e293b; padding: 6px 12px; border-radius: 6px; }
         .coins-text { font-size: 14px; color: #fbbf24; font-weight: bold; }
         .status-mid { font-size: 14px; font-weight: bold; color: #3b82f6; }
 
-        /* Компактное Табло */
         .scoreboard { display: flex; justify-content: center; align-items: center; gap: 20px; background: #1e293b; padding: 8px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 12px; }
         .score-num { font-size: 24px; font-weight: bold; color: #fbbf24; min-width: 30px; text-align: center; }
         .score-text { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Сетки карточек (Мини-формат) */
         .grid-container { background: #1e293b; border-radius: 8px; padding: 10px; border: 1px solid #334155; margin-bottom: 12px; }
         .grid-container h4 { margin: 0 0 8px 0; font-size: 13px; color: #cbd5e1; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
         
-        /* Мини-Карточка */
-        .card-item { background: #0b1120; padding: 6px; border-radius: 6px; cursor: pointer; border: 2px solid #334155; text-align: center; position: relative; font-size: 12px; }
-        .card-item:hover:not(.fatigued) { border-color: #4b5563; }
+        .card-item { background: #0b1120; padding: 6px; border-radius: 6px; cursor: pointer; border: 2px solid #334155; text-align: center; position: relative; font-size: 12px; transition: 0.15s; }
+        .card-item:hover:not(.spent) { border-color: #4b5563; }
         .card-item.selected { border-color: #3b82f6; background: #1e3a8a; }
         
-        /* Усталость */
-        .card-item.fatigued { opacity: 0.35; cursor: not-allowed; filter: grayscale(100%); }
-        .fatigue-badge { position: absolute; top: -2px; right: -2px; background: #ef4444; color: white; font-size: 9px; padding: 1px 4px; border-radius: 4px; font-weight: bold; }
+        /* Сгоревшая карта (В раздевалке / Использовано) */
+        .card-item.spent { opacity: 0.15; cursor: not-allowed; filter: grayscale(100%); pointer-events: none; border-color: #1e293b; }
+        .spent-badge { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); background: #ef4444; color: white; font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: bold; letter-spacing: 0.5px; opacity: 0.9; }
 
         .avatar { font-size: 22px; margin-bottom: 2px; }
         .tier-Золото { color: #fbbf24; font-weight: bold; }
         .tier-Серебро { color: #cbd5e1; font-weight: bold; }
         .tier-Бронза { color: #d97706; font-weight: bold; }
 
-        .log-box { background: #020617; padding: 10px; border-radius: 6px; margin-top: 10px; font-family: monospace; font-size: 12px; max-height: 80px; overflow-y: auto; }
+        .log-box { background: #020617; padding: 10px; border-radius: 6px; margin-top: 10px; font-family: monospace; font-size: 12px; max-height: 95px; overflow-y: auto; border: 1px solid #1e293b; }
+        
+        /* Шпаргалка на экране */
+        .cheat-sheet { background: #0f172a; border: 1px solid #334155; padding: 6px; border-radius: 6px; margin-top: 8px; font-size: 11px; color: #94a3b8; }
     </style>
 </head>
 <body>
 
 <div class="container">
     
+    <!-- ЭКРАН 1: МЕНЮ -->
     <div id="screen-menu" class="screen active">
         <div style="text-align: center; margin-top: 60px;">
             <h2 style="font-size: 32px; margin-bottom: 5px; letter-spacing: 1px;">NHL ULTIMATE CARDS</h2>
@@ -67,6 +65,7 @@
         </div>
     </div>
 
+    <!-- ЭКРАН 2: МАГАЗИН -->
     <div id="screen-shop" class="screen">
         <div class="header-top">
             <span style="font-size: 14px; font-weight: bold;">🛒 Магазин</span>
@@ -84,6 +83,7 @@
         <div id="shop-result" style="margin-top: 15px; text-align: center; font-size: 14px; color: #10b981; font-weight: bold;"></div>
     </div>
 
+    <!-- ЭКРАН 3: МАТЧ -->
     <div id="screen-game" class="screen">
         <div class="header-top">
             <button class="btn btn-secondary" onclick="endMatch(true)">Назад</button>
@@ -99,20 +99,24 @@
             <div class="score-text">ИИ</div>
         </div>
 
+        <!-- РОСТЕР -->
         <div class="grid-container">
-            <h4>🏃 Твой Ростер</h4>
+            <h4>🏃 Твой Ростер (Каждый строго на 1 раунд)</h4>
             <div id="players-list" class="grid"></div>
         </div>
 
+        <!-- ТАКТИКА -->
         <div class="grid-container">
-            <h4>🃏 Тактика</h4>
+            <h4>🃏 Тактика на матч (Одноразовые)</h4>
             <div id="cards-list" class="grid"></div>
         </div>
 
         <button class="btn btn-primary" style="width: 100%; font-size: 16px; padding: 10px;" onclick="submitTurn()">ПОДТВЕРДИТЬ ХОД</button>
 
-        <div class="log-box" id="match-log">
-            Ожидание выбора...
+        <div class="log-box" id="match-log">Ожидание выбора...</div>
+        
+        <div class="cheat-sheet">
+            <strong>💡 Шпаргалка контр-пиков (-30 очков):</strong> Ван-таймер ➔ Выбивание ➔ Из офиса ➔ Автобус ➔ Кистевой ➔ Блок ➔ Ван-таймер.
         </div>
     </div>
 
@@ -120,11 +124,26 @@
 
 <script>
 let serverPlayers = {}, serverCards = {};
-let profile = JSON.parse(localStorage.getItem('nhl_v4')) || { coins: 300, players: ["celebrini", "levshunov", "michkov"], actions: ["att_wrist", "def_poke", "att_onetimer"] };
+// Инициализируем профиль СРАЗУ с 9 игроками и 9 картами, чтобы хватило на весь матч!
+let profile = JSON.parse(localStorage.getItem('nhl_v5')) || { 
+    coins: 300, 
+    players: ["celebrini", "levshunov", "michkov", "bedard", "mintyukov", "fox", "mcdavid", "kucherov", "hedman"], 
+    actions: ["att_onetimer", "att_wrist", "att_office", "def_block", "def_poke", "def_wall", "att_onetimer", "def_block", "att_wrist"] 
+};
 
-// Состояние текущего матча (Период: 1-3, Раунд внутри периода: 1-Атака, 2-Защита, 3-Вбрасывание)
-let matchState = { period: 1, round: 1, pScore: 0, bScore: 0, fatiguedPlayer: null };
-let selectedPlayer = null, selectedCard = null;
+// Состояние матча
+let matchState = { 
+    period: 1, 
+    round: 1, 
+    pScore: 0, 
+    bScore: 0, 
+    usedPlayerIds: [],     // Кто уже в раздевалке
+    matchDeck: [],         // 9 карт, сформированных на этот матч
+    usedCardIndices: []    // Индексы использованных карт из matchDeck
+};
+
+let selectedPlayerId = null;
+let selectedMatchCardIdx = null; // Выбираем по индексу в колоде матча, так как могут быть дубликаты
 
 const ROUND_NAMES = { 1: "Атака ⚔️", 2: "Защита 🛡️", 3: "Вбрасывание 🏒" };
 
@@ -136,7 +155,7 @@ async function init() {
 }
 
 function updateUI() {
-    localStorage.setItem('nhl_v4', JSON.stringify(profile));
+    localStorage.setItem('nhl_v5', JSON.stringify(profile));
     document.querySelectorAll('.coin-display').forEach(el => el.innerText = profile.coins);
 }
 
@@ -147,15 +166,28 @@ function switchScreen(screenId) {
 }
 
 function startMatch() {
-    if(profile.players.length < 2) {
-        alert("В команде должно быть минимум 2 игрока из-за системы усталости!");
+    if(profile.players.length < 9) {
+        alert(`Для игры необходимо минимум 9 игроков в ростере! У вас сейчас: ${profile.players.length}. Откройте паки в магазине.`);
         return;
     }
-    matchState = { period: 1, round: 1, pScore: 0, bScore: 0, fatiguedPlayer: null };
+    
+    // Генерируем колоду на матч (берем первые 9 карт из профиля, либо сколько есть)
+    let deck = [...profile.actions];
+    while(deck.length < 9) deck.push("att_wrist"); // Защита от пустой колоды
+    deck = deck.slice(0, 9);
+
+    matchState = { 
+        period: 1, round: 1, pScore: 0, bScore: 0, 
+        usedPlayerIds: [], 
+        matchDeck: deck, 
+        usedCardIndices: [] 
+    };
+    
     document.getElementById('score-player').innerText = 0;
     document.getElementById('score-bot').innerText = 0;
-    document.getElementById('match-log').innerHTML = "Матч начался! Первый период.";
-    selectedPlayer = null; selectedCard = null;
+    document.getElementById('match-log').innerHTML = "Матч начался! Период 1 · Раунд Атака.";
+    selectedPlayerId = null; selectedMatchCardIdx = null;
+    
     updateMatchUI();
     switchScreen('screen-game');
 }
@@ -168,13 +200,13 @@ function updateMatchUI() {
     pList.innerHTML = "";
     profile.players.forEach(id => {
         let p = serverPlayers[id]; if(!p) return;
-        let isFatigued = (id === matchState.fatiguedPlayer);
-        let fatigueHtml = isFatigued ? '<div class="fatigue-badge">💤</div>' : '';
-        let classes = `card-item ${isFatigued ? 'fatigued' : ''} ${id === selectedPlayer ? 'selected' : ''}`;
+        let isSpent = matchState.usedPlayerIds.includes(id);
+        let badge = isSpent ? '<div class="spent-badge">В РАЗДЕВАЛКЕ</div>' : '';
+        let classes = `card-item ${isSpent ? 'spent' : ''} ${id === selectedPlayerId ? 'selected' : ''}`;
         
         pList.innerHTML += `
-            <div class="${classes}" id="p-${id}" onclick="${isFatigued ? '' : `selectItem('player', '${id}')`}">
-                ${fatigueHtml}
+            <div class="${classes}" onclick="${isSpent ? '' : `selectPlayer('${id}')`}">
+                ${badge}
                 <div class="avatar">${p.image}</div>
                 <div style="font-weight:bold; white-space:nowrap; overflow:hidden;">${p.name}</div>
                 <div class="tier-${p.tier}" style="font-size:10px;">${p.tier}</div>
@@ -182,32 +214,36 @@ function updateMatchUI() {
             </div>`;
     });
 
-    // Рендер карт
+    // Рендер карт тактики по их индексам в колоде матча
     let cList = document.getElementById('cards-list');
     cList.innerHTML = "";
-    profile.actions.forEach(id => {
-        let c = serverCards[id]; if(!c) return;
+    matchState.matchDeck.forEach((cardId, index) => {
+        let c = serverCards[cardId]; if(!c) return;
+        let isSpent = matchState.usedCardIndices.includes(index);
+        let badge = isSpent ? '<div class="spent-badge">СЫГРАНО</div>' : '';
         let isAtk = c.type === 'attack';
+        let classes = `card-item ${isSpent ? 'spent' : ''} ${index === selectedMatchCardIdx ? 'selected' : ''}`;
+        
         cList.innerHTML += `
-            <div class="card-item ${id === selectedCard ? 'selected' : ''}" id="c-${id}" onclick="selectItem('card', '${id}')">
+            <div class="${classes}" onclick="${isSpent ? '' : `selectCard(${index})`}">
+                ${badge}
                 <div style="color: ${isAtk ? '#ef4444' : '#3b82f6'}; font-weight:bold;">${isAtk ? '⚔️' : '🛡️'} ${c.name}</div>
-                <div style="font-size:10px; color:#94a3b8; margin-top:2px;">${c.desc.split(' ')[0]} ${c.desc.split(' ')[1] || ''}</div>
+                <div style="font-size:10px; color:#94a3b8; margin-top:2px;">${c.desc}</div>
             </div>`;
     });
 }
 
-function selectItem(type, id) {
-    if(type === 'player') selectedPlayer = id;
-    else selectedCard = id;
-    updateMatchUI();
-}
+function selectPlayer(id) { selectedPlayerId = id; updateMatchUI(); }
+function selectCard(index) { selectedMatchCardIdx = index; updateMatchUI(); }
 
 async function submitTurn() {
-    if(!selectedPlayer || !selectedCard) { alert("Выберите игрока и тактику!"); return; }
+    if(selectedPlayerId === null || selectedMatchCardIdx === null) { alert("Выберите доступного игрока и карту тактики!"); return; }
+    
+    let cardId = matchState.matchDeck[selectedMatchCardIdx];
     
     let res = await fetch('/play', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ player_id: selectedPlayer, action_id: selectedCard, round_idx: matchState.round })
+        body: JSON.stringify({ player_id: selectedPlayerId, action_id: cardId, round_idx: matchState.round })
     });
     let result = await res.json();
     
@@ -219,26 +255,26 @@ async function submitTurn() {
     
     document.getElementById('match-log').innerHTML = `
         <strong>П${matchState.period} (${ROUND_NAMES[matchState.round]}):</strong> ${result.details}<br>
-        <strong>ИИ:</strong> ${result.bot_setup}
+        <span style="color:#94a3b8">Твой счет: ${result.player_score} | Счет ИИ: ${result.bot_score}</span><br>
+        <strong>ИИ выставил:</strong> ${result.bot_setup}
     `;
 
-    // Механика усталости: игрок засыпает на ОДИН следующий ход
-    matchState.fatiguedPlayer = selectedPlayer;
-    selectedPlayer = null; selectedCard = null;
+    // Сжигаем игрока и карту НАВСЕГДА до конца текущего матча
+    matchState.usedPlayerIds.push(selectedPlayerId);
+    matchState.usedCardIndices.push(selectedMatchCardIdx);
     
-    // Продвигаем внутренний раунд
+    selectedPlayerId = null; selectedMatchCardIdx = null;
+    
+    // Логика перехода раундов и периодов
     matchState.round++;
-    
-    // Если прошли все 3 раунда (Атака, Защита, Вбрасывание), переходим к следующему периоду
     if(matchState.round > 3) {
         matchState.round = 1;
         matchState.period++;
     }
     
-    // Конец матча после 3 периодов (всего 9 ходов)
     if(matchState.period > 3) {
-        setTimeout(() => endMatch(false), 1500);
-        document.getElementById('match-log').innerHTML += `<br><span style="color:#fbbf24; font-weight:bold;">Матч завершен! Подсчет очков...</span>`;
+        setTimeout(() => endMatch(false), 2000);
+        document.getElementById('match-log').innerHTML += `<br><span style="color:#fbbf24; font-weight:bold;">Матч завершен! Идет подсчет...</span>`;
     } else {
         updateMatchUI();
     }
@@ -266,8 +302,8 @@ async function buyPack() {
     let drop = await res.json();
     
     profile.coins -= 150;
-    if(!profile.players.includes(drop.player.id)) profile.players.push(drop.player.id);
-    if(!profile.actions.includes(drop.card.id)) profile.actions.push(drop.card.id);
+    profile.players.push(drop.player.id); // Разрешаем дубликаты/добавление новых в общую коллекцию
+    profile.actions.push(drop.card.id);
     
     updateUI();
     document.getElementById('shop-result').innerHTML = `Выпал: ${drop.player.data.name} [${drop.player.data.tier}]<br>Тактика: ${drop.card.data.name}`;
