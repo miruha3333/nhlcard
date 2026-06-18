@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hockey Card Game MVP</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #121824;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 { color: #00d2ff; text-shadow: 0 0 10px rgba(0,210,255,0.5); }
+        .section-title { font-size: 18px; margin: 20px 0 10px; color: #aaa; text-transform: uppercase; }
+        .card-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 15px;
+            width: 140px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); border-color: #00d2ff; }
+        .card.selected {
+            border-color: #00ff88;
+            box-shadow: 0 0 15px rgba(0,255,136,0.4);
+            background: #142c26;
+        }
+        .card-emoji { font-size: 40px; margin-bottom: 10px; }
+        .card-name { font-weight: bold; font-size: 14px; margin-bottom: 8px; }
+        .card-stat { font-size: 12px; color: #00d2ff; }
+        
+        #play-btn {
+            background: linear-gradient(135deg, #00d2ff, #0066ff);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,102,255,0.4);
+            transition: 0.2s;
+        }
+        #play-btn:hover { transform: scale(1.05); }
+        
+        #result-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: #1e293b;
+            border-radius: 15px;
+            display: none;
+            border: 1px solid #334155;
+        }
+        .score { font-size: 24px; font-weight: bold; color: #00ff88; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+    <h1>🚨 HOCKEY CARD ARENA 🚨</h1>
+    
+    <div class="section-title">1. Выбери Хоккеиста</div>
+    <div class="card-container" id="players-zone"></div>
+
+    <div class="section-title">2. Выбери Тактику</div>
+    <div class="card-container" id="actions-zone"></div>
+
+    <button id="play-btn" onclick="startDuel()">В БОЙ!</button>
+
+    <div id="result-box">
+        <h2 id="match-result">ГОЛ!</h2>
+        <div class="score"><span id="p-score">0</span> VS <span id="b-score">0</span></div>
+        <p style="color: #aaa;">Бот защищался связкой: <span id="bot-setup" style="color: #ff4655; font-weight:bold;">-</span></p>
+    </div>
+
+    <script>
+        let selectedPlayer = null;
+        let selectedAction = null;
+
+        // Автоматически загружаем карты при старте страницы
+        async function loadCards() {
+            const res = await fetch('/api/cards');
+            const data = await res.json();
+            
+            // Рендерим хоккеистов
+            const pZone = document.getElementById('players-zone');
+            for (let id in data.players) {
+                let p = data.players[id];
+                pZone.innerHTML += `
+                    <div class="card" id="p-${id}" onclick="selectPlayer('${id}')">
+                        <div class="card-emoji">${p.image}</div>
+                        <div class="card-name">${p.name}</div>
+                        <div class="card-stat">АТК: ${p.attack} | ЗЩТ: ${p.defense}</div>
+                    </div>
+                `;
+            }
+
+            // Рендерим карточки действий
+            const aZone = document.getElementById('actions-zone');
+            for (let id in data.actions) {
+                let a = data.actions[id];
+                aZone.innerHTML += `
+                    <div class="card" id="a-${id}" onclick="selectAction('${id}')">
+                        <div class="card-emoji">${a.type === 'attack' ? '🔥' : '🧱'}</div>
+                        <div class="card-name">${a.name}</div>
+                        <div class="card-stat">${data.actions[id].desc}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function selectPlayer(id) {
+            document.querySelectorAll('#players-zone .card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`p-${id}`).classList.add('selected');
+            selectedPlayer = id;
+        }
+
+        function selectAction(id) {
+            document.querySelectorAll('#actions-zone .card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`a-${id}`).classList.add('selected');
+            selectedAction = id;
+        }
+
+        // Отправляем выбор на сервер
+        async function startDuel() {
+            if (!selectedPlayer || !selectedAction) {
+                alert("Сначала выбери хоккеиста и карточку тактики!");
+                return;
+            }
+
+            const response = await fetch('/play', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ player_id: selectedPlayer, action_id: selectedAction })
+            });
+
+            const result = await response.json();
+            
+            // Показываем результат игроку
+            document.getElementById('result-box').style.display = 'block';
+            document.getElementById('match-result').innerText = result.result;
+            document.getElementById('p-score').innerText = result.player_score;
+            document.getElementById('b-score').innerText = result.bot_score;
+            document.getElementById('bot-setup').innerText = result.bot_setup;
+            
+            // Скроллим к результату
+            document.getElementById('result-box').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        loadCards();
+    </script>
+</body>
+</html>
