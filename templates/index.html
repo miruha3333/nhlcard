@@ -2,302 +2,289 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>NHL Mini App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHL Ultimate Cards</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #0b0f17; color: #fff; text-align: center; padding: 10px; margin: 0; user-select: none; }
+        body {
+            background-color: #121824;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #233149;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .balance {
+            font-size: 20px;
+            background: #1e293b;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #3b82f6;
+        }
+        .btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn:hover { background-color: #2563eb; }
+        .btn-shop { background-color: #10b981; }
+        .btn-shop:hover { background-color: #059669; }
         
-        /* Профиль */
-        .profile-box { background: #151f32; border: 1px solid #00d2ff; border-radius: 10px; max-width: 450px; margin: 0 auto 10px; padding: 8px; display: flex; justify-content: space-around; font-size: 11px; }
-        .stat-val { font-size: 14px; font-weight: bold; color: #00d2ff; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .panel {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #2e3e56;
+        }
+        h3 { margin-top: 0; color: #94a3b8; border-bottom: 1px solid #2e3e56; padding-bottom: 5px;}
         
-        /* Табло */
-        .scoreboard { background: #151f32; border: 2px solid #00ff88; border-radius: 12px; max-width: 280px; margin: 10px auto; padding: 8px; }
-        .match-score { font-size: 32px; font-family: monospace; color: #00ff88; font-weight: bold; letter-spacing: 2px; }
-        .period-text { font-size: 13px; color: #ffb703; font-weight: bold; text-transform: uppercase; }
-        .round-hint { font-size: 12px; color: #00d2ff; margin-top: 4px; background: rgba(0,210,255,0.1); padding: 4px; border-radius: 4px; }
+        .card-item {
+            background: #0f172a;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .card-item:hover { border-color: #475569; }
+        .card-item.selected { border-color: #3b82f6; background: #1d4ed8; }
+        
+        .avatar { font-size: 30px; }
+        .tier-Золото { color: #f59e0b; font-weight: bold; }
+        .tier-Серебро { color: #94a3b8; font-weight: bold; }
+        .tier-Бронза { color: #b45309; font-weight: bold; }
 
-        .section-title { font-size: 11px; margin: 12px 0 6px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; }
-        
-        /* Сетка игроков 2х2 под мобилки */
-        .player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 400px; margin: 0 auto; }
-        
-        /* Прокрутка карт тактики горизонтально (чтобы не занимать экран) */
-        .action-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; max-width: 400px; margin: 0 auto; scrollbar-width: none; }
-        .action-scroll::-webkit-scrollbar { display: none; }
-
-        /* Карточки */
-        .card { background: #121a2e; border: 2px solid #233554; border-radius: 10px; padding: 8px; box-sizing: border-box; cursor: pointer; transition: 0.1s; position: relative; }
-        .card.selected { border-color: #00ff88; background: #0c261c; }
-        .card.tired { border-color: #ff4655; background: #221418; }
-        .card.tired .card-stat { color: #ff4655 !important; font-weight: bold; }
-        .card.used { opacity: 0.3; pointer-events: none; border-color: #333; background: #111; }
-        
-        .card-emoji { font-size: 20px; }
-        .card-name { font-weight: bold; font-size: 12px; margin: 4px 0; }
-        .card-stat { font-size: 10px; color: #00d2ff; }
-        
-        .tact-card { min-width: 95px; width: 95px; }
-
-        /* Кнопки */
-        .btn { background: linear-gradient(135deg, #00d2ff, #0066ff); color: white; border: none; padding: 14px; font-size: 15px; font-weight: bold; border-radius: 25px; cursor: pointer; width: 90%; max-width: 350px; margin-top: 12px; box-shadow: 0 4px 10px rgba(0,102,255,0.3); }
-        .btn-intermission { background: linear-gradient(135deg, #ffb703, #fb8500); display: none; }
-        .btn-reset { background: linear-gradient(135deg, #ff4655, #b71c1c); display: none; }
-        
-        /* Лог раунда */
-        #result-box { margin: 12px auto; padding: 10px; background: #151f32; border-radius: 10px; max-width: 380px; display: none; border: 1px solid #233554; font-size: 13px; }
+        .log-box {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 100px;
+            margin-top: 20px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
 
-    <!-- ПРОФИЛЬ СТАТИСТИКИ -->
-    <div class="profile-box">
-        <div><div class="stat-val" id="st-total">0</div><div>Матчи</div></div>
-        <div><div class="stat-val" style="color:#4ade80;" id="st-wins">0</div><div>Победы</div></div>
-        <div><div class="stat-val" style="color:#f87171;" id="st-losses">0</div><div>Лузы</div></div>
-        <div><div class="stat-val" id="st-rate">0%</div><div>Винрейт</div></div>
+<div class="container">
+    <header>
+        <div>
+            <h1 style="margin:0;">NHL Ultimate Cards</h1>
+            <div id="round-title" style="color:#3b82f6; font-weight:bold; margin-top:5px;">Раунд 1: Твоя Атака</div>
+        </div>
+        <div style="display:flex; gap:15px; align-items:center;">
+            <div class="balance">💰 Монеты: <span id="coin-count">0</span></div>
+            <button class="btn btn-shop" onclick="buyPack()">🛒 Купить Пак (150)</button>
+        </div>
+    </header>
+
+    <div class="grid">
+        <!-- ТВОИ ДОСТУПНЫЕ ИГРОКИ -->
+        <div class="panel">
+            <h3>🏃 Твои Хоккеисты (из инвентаря)</h3>
+            <div id="players-list">Загрузка коллекции...</div>
+        </div>
+
+        <!-- ТВОИ ДОСТУПНЫЕ КАРТЫ ТАКТИКИ -->
+        <div class="panel">
+            <h3>🃏 Твои Тактики (из инвентаря)</h3>
+            <div id="cards-list">Загрузка тактик...</div>
+        </div>
     </div>
+
+    <div style="text-align: center;">
+        <button class="btn" style="font-size:20px; width:100%;" onclick="submitTurn()">ПОДТВЕРДИТЬ ХОД (В ЗАКРЫТУЮ) 🏒</button>
+    </div>
+
+    <div class="log-box">
+        <h3 style="border:none; margin-bottom:5px;">📋 Протокол матча:</h3>
+        <div id="log-text">Выберите игрока и карточку, затем нажмите кнопку хода.</div>
+    </div>
+</div>
+
+<script>
+// Глобальные базы данных от сервера
+let serverPlayers = {};
+let serverCards = {};
+
+// Текущий раунд игры (1 - Атака, 2 - Защита, 3 - Вбрасывание)
+let currentRound = 1;
+
+// ЗАГРУЗКА ИЛИ СОЗДАНИЕ ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ (Хранится в браузере)
+let profile = JSON.parse(localStorage.getItem('nhl_profile_v2')) || {
+    coins: 200, // Даем 200 монет на старте, чтобы сразу можно было купить один пак!
+    players: ["celebrini", "levshunov"], // Стартовый набор (только 2 Бронзовых новичка!)
+    actions: ["att_wrist", "def_poke"]   // Стартовые карты тактики
+};
+
+function saveProfile() {
+    localStorage.setItem('nhl_profile_v2', JSON.stringify(profile));
+    document.getElementById('coin-count').innerText = profile.coins;
+    renderInventory();
+}
+
+// Запрашиваем базы у сервера при старте страницы
+async function initGame() {
+    let res = await fetch('/api/init_deck');
+    let data = await res.json();
+    serverPlayers = data.players;
+    serverCards = data.actions;
     
-    <!-- ТАБЛО И ДИНАМИКА МАТЧА -->
-    <div class="scoreboard">
-        <div class="period-text" id="period-display">1 ПЕРИОД — РАУНД 1</div>
-        <div class="match-score"><span id="p-goals">0</span> : <span id="b-goals">0</span></div>
-        <div class="round-hint" id="round-hint-text">ВЫ АТАКУЕТЕ! Нужна Атака форвардов.</div>
-    </div>
+    saveProfile(); // Отобразит монеты и инвентарь
+}
+
+// Отрисовка только тех карт, которые открыты в инвентаре игрока
+function renderInventory() {
+    // Рендер хоккеистов
+    let pList = document.getElementById('players-list');
+    pList.innerHTML = "";
+    profile.players.forEach(id => {
+        let p = serverPlayers[id];
+        if(!p) return;
+        pList.innerHTML += `
+            <div class="card-item" id="p-${id}" onclick="selectItem('player', '${id}')">
+                <div class="avatar">${p.image}</div>
+                <div>
+                    <strong>${p.name}</strong> <span class="tier-${p.tier}">[${p.tier}]</span><br>
+                    <small>🔥 АТК: ${p.attack} | 🛡️ ЗАЩ: ${p.defense}</small>
+                </div>
+            </div>
+        `;
+    });
+
+    // Рендер карт тактики
+    let cList = document.getElementById('cards-list');
+    cList.innerHTML = "";
+    profile.actions.forEach(id => {
+        let c = serverCards[id];
+        if(!c) return;
+        cList.innerHTML += `
+            <div class="card-item" id="c-${id}" onclick="selectItem('card', '${id}')">
+                <div>
+                    <strong>${c.name}</strong> (${c.type == 'attack' ? 'Атака' : 'Защита'})<br>
+                    <small style="color:#a855f7;">${c.desc}</small>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// Логика выделения кликнутых карт
+let selectedPlayer = null;
+let selectedCard = null;
+
+function selectItem(type, id) {
+    if(type === 'player') {
+        if(selectedPlayer) document.getElementById(`p-${selectedPlayer}`).classList.remove('selected');
+        selectedPlayer = id;
+        document.getElementById(`p-${id}`).classList.add('selected');
+    } else {
+        if(selectedCard) document.getElementById(`c-${selectedCard}`).classList.remove('selected');
+        selectedCard = id;
+        document.getElementById(`c-${id}`).classList.add('selected');
+    }
+}
+
+// ПОКУПКА ПАКА В МАГАЗИНЕ
+async function buyPack() {
+    if(profile.coins < 150) {
+        alert("Не хватает монет! Нужно 150 монет. Играй матчи, чтобы заработать.");
+        return;
+    }
     
-    <!-- ИГРОВАЯ ЗОНА -->
-    <div id="game-controls">
-        <div class="section-title">Твоё звено (2 Форварда + 2 Защитника)</div>
-        <div class="player-grid" id="players-zone"></div>
+    let res = await fetch('/buy_pack', { method: 'POST', headers: {'Content-Type': 'application/json'} });
+    let drop = await res.json();
+    
+    profile.coins -= 150;
+    
+    // Добавляем если таких еще нет
+    if(!profile.players.includes(drop.player.id)) profile.players.push(drop.player.id);
+    if(!profile.actions.includes(drop.card.id)) profile.actions.push(drop.card.id);
+    
+    saveProfile();
+    
+    alert(`🎁 ПАК ОТКРЫТ!\n\nИгрок: ${drop.player.data.name} [${drop.player.data.tier}] ${drop.player.data.image}\nКарта: ${drop.player.data.name == drop.card.data.name ? 'Дубль' : drop.card.data.name}`);
+}
 
-        <div class="section-title">Тактика на период (Листай вбок, сыгранные сгорают)</div>
-        <div class="action-scroll" id="actions-zone"></div>
+//ОТПРАВКА ХОДА НА СЕРВЕР
+async function submitTurn() {
+    if(!selectedPlayer || !selectedCard) {
+        alert("Вымой руки перед выходом на лед! Выбери хоккеиста и карту тактики.");
+        return;
+    }
+    
+    let res = await fetch('/play', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            player_id: selectedPlayer,
+            action_id: selectedCard,
+            round_idx: currentRound
+        })
+    });
+    
+    let result = await res.json();
+    
+    // Начисляем монеты на основе результата
+    if(result.is_win) {
+        profile.coins += 50;
+        var rewardText = "<span style='color:#10b981;'>Победа в раунде! Начислено +50 монет.</span>";
+    } else {
+        profile.coins += 10;
+        var rewardText = "<span style='color:#ef4444;'>Поражение в раунде. Утешительные +10 монет.</span>";
+    }
+    
+    // Выводим логи
+    document.getElementById('log-text').innerHTML = `
+        <strong>Что произошло:</strong> ${result.details}<br>
+        <strong>Противостояние ИИ:</strong> против тебя играл ${result.bot_setup}<br>
+        <strong>Итоговые счета:</strong> Ты: ${result.player_score} | Бот: ${result.bot_score}<br><br>
+        ${rewardText}
+    `;
+    
+    // Переключаем раунды для разнообразия механики
+    currentRound++;
+    if(currentRound > 3) currentRound = 1;
+    
+    let titles = {1: "Раунд 1: Твоя Атака", 2: "Раунд 2: Твоя Защита", 3: "Раунд 3: Решающее Вбрасывание"};
+    document.getElementById('round-title').innerText = titles[currentRound];
+    
+    // Сбрасываем выбор
+    document.getElementById(`p-${selectedPlayer}`).classList.remove('selected');
+    document.getElementById(`c-${selectedCard}`).classList.remove('selected');
+    selectedPlayer = null;
+    selectedCard = null;
+    
+    saveProfile();
+}
 
-        <button class="btn" id="action-btn" onclick="nextRound()">ПОДТВЕРДИТЬ СМЕНУ</button>
-    </div>
-
-    <!-- КНОПКИ ПЕРЕХОДОВ -->
-    <button class="btn btn-intermission" id="intermission-btn" onclick="startNewPeriod()">УЙТИ НА ПЕРЕРЫВ (В РАЗДЕВАЛКУ)</button>
-    <button class="btn btn-reset" id="reset-btn" onclick="startNewMatch()">ОТКРЫТЬ СЛЕДУЮЩИЙ МАТЧ</button>
-
-    <!-- ИНФО-БОКС СИМУЛЯЦИИ -->
-    <div id="result-box">
-        <div id="round-details" style="font-weight:bold; margin-bottom:5px; color:#ffb703;">Гол или Сейв?</div>
-        <div style="font-size:11px; color:#ccc;">Твоя мощь: <span id="p-power" style="color:#00ff88">0</span> vs Мощь Бота: <span id="b-power" style="color:#ff4655">0</span></div>
-        <div style="font-size:11px; color:#aaa; margin-top:3px;">Защита/Атака бот-звена: <span id="bot-setup">-</span></div>
-    </div>
-
-    <script>
-        let db = null;
-        let matchPlayers = []; 
-        let currentPeriod = 1;
-        let currentRound = 1; // Внутри периода: 1 = Мы атакуем, 2 = Бот атакует, 3 = Вбрасывание
-        let pGoals = 0, bGoals = 0;
-        
-        let selectedPlayer = null;
-        let selectedAction = null;
-        
-        let fatiguedPlayers = []; // Усталость обнуляется каждый период
-        let usedCards = []; // Карты блокируются до конца периода
-
-        let stats = JSON.parse(localStorage.getItem('h_stats')) || { total: 0, wins: 0, losses: 0 };
-
-        const roundHints = {
-            1: "ВЫ АТАКУЕТЕ! (Твоя Атака пробивает Оборону бота)",
-            2: "БОТ АТАКУЕТ! (Твоя Оборона сдерживает Атаку бота)",
-            3: "ВБРАСЫВАНИЕ! (Чистая дуэль сил на свободном льду)"
-        };
-
-        function updateStatsUI() {
-            document.getElementById('st-total').innerText = stats.total;
-            document.getElementById('st-wins').innerText = stats.wins;
-            document.getElementById('st-losses').innerText = stats.losses;
-            let rate = stats.total > 0 ? Math.round((stats.wins / stats.total) * 100) : 0;
-            document.getElementById('st-rate').innerText = `${rate}%`;
-        }
-
-        async function initGame() {
-            const res = await fetch('/api/init_deck');
-            db = await res.json();
-            startNewMatch();
-        }
-
-        function startNewMatch() {
-            currentPeriod = 1; currentRound = 1; pGoals = 0; bGoals = 0;
-            document.getElementById('p-goals').innerText = 0;
-            document.getElementById('b-goals').innerText = 0;
-            document.getElementById('game-controls').style.display = 'block';
-            document.getElementById('reset-btn').style.display = 'none';
-            document.getElementById('intermission-btn').style.display = 'none';
-            document.getElementById('result-box').style.display = 'none';
-
-            // Берем СЛУЧАЙНЫЕ 2 форварда и 2 защитника (Звено на матч)
-            let fKeys = Object.keys(db.forwards).sort(() => 0.5 - Math.random()).slice(0, 2);
-            let dKeys = Object.keys(db.defenders).sort(() => 0.5 - Math.random()).slice(0, 2);
-            
-            matchPlayers = [];
-            fKeys.forEach(k => matchPlayers.push({id: k, ...db.forwards[k]}));
-            dKeys.forEach(k => matchPlayers.push({id: k, ...db.defenders[k]}));
-
-            startNewPeriod();
-        }
-
-        function startNewPeriod() {
-            fatiguedPlayers = [];
-            usedCards = [];
-            selectedPlayer = null;
-            selectedAction = null;
-            
-            document.getElementById('game-controls').style.display = 'block';
-            document.getElementById('intermission-btn').style.display = 'none';
-            
-            updateRoundUI();
-            renderPlayers();
-            dealActionCards();
-        }
-
-        function updateRoundUI() {
-            document.getElementById('period-display').innerText = `${currentPeriod} ПЕРИОД — РАУНД ${currentRound}`;
-            document.getElementById('round-hint-text').innerText = roundHints[currentRound];
-        }
-
-        function renderPlayers() {
-            const zone = document.getElementById('players-zone');
-            zone.innerHTML = '';
-            matchPlayers.forEach(p => {
-                let isTired = fatiguedPlayers.includes(p.id);
-                zone.innerHTML += `
-                    <div class="card ${isTired ? 'tired' : ''}" id="p-${p.id}" onclick="selectPlayer('${p.id}')">
-                        <div class="card-emoji">${p.image}</div>
-                        <div class="card-name">${p.name}</div>
-                        <div class="card-stat">
-                            ${isTired ? '<span style="color:#ff4655;">УСТАЛ (-30%)</span>' : `АТК: ${p.attack} | ЗЩТ: ${p.defense}`}
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function dealActionCards() {
-            const zone = document.getElementById('actions-zone');
-            zone.innerHTML = '';
-            // Выдаем 5 случайных тактик из пула на период
-            let allTactics = Object.keys(db.actions).sort(() => 0.5 - Math.random()).slice(0, 5);
-            
-            allTactics.forEach(k => {
-                let a = db.actions[k];
-                zone.innerHTML += `
-                    <div class="card tact-card" id="a-${k}" onclick="selectAction('${k}')">
-                        <div class="card-emoji">${a.type === 'attack' ? '🔥' : '🧱'}</div>
-                        <div class="card-name">${a.name}</div>
-                        <div class="card-stat">${a.desc}</div>
-                    </div>
-                `;
-            });
-        }
-
-        function selectPlayer(id) {
-            document.querySelectorAll('#players-zone .card').forEach(c => c.classList.remove('selected'));
-            document.getElementById(`p-${id}`).classList.add('selected');
-            selectedPlayer = id;
-        }
-
-        function selectAction(id) {
-            if (usedCards.includes(id)) return;
-            document.querySelectorAll('#actions-zone .card').forEach(c => c.classList.remove('selected'));
-            document.getElementById(`a-${id}`).classList.add('selected');
-            selectedAction = id;
-        }
-
-        async function nextRound() {
-            if (!selectedPlayer || !selectedAction) {
-                alert("Выберите хоккеиста и карточку тактики!");
-                return;
-            }
-
-            const response = await fetch('/play', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    player_id: selectedPlayer, 
-                    action_id: selectedAction,
-                    round_idx: currentRound,
-                    fatigued_players: fatiguedPlayers 
-                })
-            });
-            const result = await response.json();
-
-            // Обработка голов
-            if (result.winner_type === 'player_goal') pGoals++;
-            if (result.winner_type === 'bot_goal') bGoals++;
-
-            document.getElementById('p-goals').innerText = pGoals;
-            document.getElementById('b-goals').innerText = bGoals;
-            
-            // Вывод логов
-            document.getElementById('result-box').style.display = 'block';
-            document.getElementById('round-details').innerText = result.details;
-            document.getElementById('p-power').innerText = result.player_score;
-            document.getElementById('b-power').innerText = result.bot_score;
-            document.getElementById('bot-setup').innerText = result.bot_setup;
-
-            // Блокируем карту и вешаем усталость
-            usedCards.push(selectedAction);
-            document.getElementById(`a-${selectedAction}`).classList.add('used');
-            document.getElementById(`a-${selectedAction}`).classList.remove('selected');
-            
-            if (!fatiguedPlayers.includes(selectedPlayer)) {
-                fatiguedPlayers.push(selectedPlayer);
-            }
-
-            // Сброс выбора
-            selectedPlayer = null; selectedAction = null;
-
-            // Шаг по раундам
-            if (currentRound < 3) {
-                currentRound++;
-                updateRoundUI();
-                renderPlayers();
-            } else {
-                // Конец периода
-                endPeriod();
-            }
-        }
-
-        function endPeriod() {
-            document.getElementById('game-controls').style.display = 'none';
-            if (currentPeriod < 3) {
-                document.getElementById('intermission-btn').style.display = 'block';
-                document.getElementById('round-hint-text').innerText = "ПЕРИОД СЫГРАН. Команды ушли в раздевалку.";
-                currentPeriod++;
-                currentRound = 1;
-            } else {
-                endMatch();
-            }
-        }
-
-        function endMatch() {
-            document.getElementById('reset-btn').style.display = 'block';
-            stats.total++;
-            
-            if (pGoals > bGoals) {
-                document.getElementById('round-hint-text').innerText = "МАТЧ ОКОНЧЕН. ВЫ ПОБЕДИЛИ!";
-                document.getElementById('period-display').innerText = "ПОБЕДА МАТЧА";
-                stats.wins++;
-            } else if (pGoals < bGoals) {
-                document.getElementById('round-hint-text').innerText = "МАТЧ ОКОНЧЕН. БОТ ОКАЗАЛСЯ СИЛЬНЕЕ.";
-                document.getElementById('period-display').innerText = "ПОРАЖЕНИЕ";
-                stats.losses++;
-            } else {
-                document.getElementById('round-hint-text').innerText = "НИЧЬЯ В ОСНОВНОЕ ВРЕМЯ! БОЕВОЙ МАТЧ.";
-                document.getElementById('period-display').innerText = "НИЧЬЯ";
-            }
-            localStorage.setItem('h_stats', JSON.stringify(stats));
-            updateStatsUI();
-        }
-
-        updateStatsUI();
-        initGame();
-    </script>
+// Запуск при загрузке страницы
+window.onload = initGame;
+</script>
 </body>
 </html>
