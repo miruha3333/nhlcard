@@ -4,35 +4,30 @@ from flask import Flask, jsonify, request, render_template
 
 app = Flask(__name__, template_folder='templates')
 
-# БАЗА ДАННЫХ ИГРЫ
+# БАЗА ИГРОКОВ
 FORWARDS = {
     "mcdavid": {"name": "К. Макдэвид", "attack": 55, "defense": 20, "image": "⚡"},
-    "ovechkin": {"name": "А. Овечкин", "attack": 50, "defense": 15, "image": "🏒"},
-    "panarin": {"name": "А. Панарин", "attack": 48, "defense": 22, "image": "👑"},
-    "kucherov": {"name": "Н. Кучеров", "attack": 52, "defense": 18, "image": "🪄"},
-    "mackinnon": {"name": "Н. Маккиннон", "attack": 54, "defense": 25, "image": "🚂"},
-    "matthews": {"name": "О. Мэттьюс", "attack": 53, "defense": 28, "image": "🎯"}
+    "kucherov": {"name": "Н. Кучеров", "attack": 52, "defense": 18, "image": "🪄"}
+    # ... добавь остальных
 }
 
 DEFENDERS = {
     "hedman": {"name": "В. Хедман", "attack": 25, "defense": 52, "image": "🛡️"},
-    "makar": {"name": "К. Макар", "attack": 36, "defense": 48, "image": "⛸️"},
-    "josi": {"name": "Р. Йоси", "attack": 33, "defense": 46, "image": "🦅"},
-    "fox": {"name": "А. Фокс", "attack": 30, "defense": 47, "image": "🦊"},
-    "hughes": {"name": "К. Хьюз", "attack": 38, "defense": 43, "image": "🚀"},
-    "mcavoy": {"name": "Ч. Макэвой", "attack": 22, "defense": 50, "image": "🐻"}
+    "fox": {"name": "А. Фокс", "attack": 30, "defense": 47, "image": "🦊"}
+    # ... добавь остальных
 }
 
+# БАЗА КАРТ С МЕХАНИКОЙ "КРИПТОНИТА" (counters)
 ACTION_CARDS = {
-    "att_wrist": {"name": "Кистевой бросок", "type": "attack", "mod_type": "add", "value": 15, "desc": "+15 к атаке"},
-    "att_office": {"name": "Бросок из офиса", "type": "attack", "mod_type": "add", "value": 25, "desc": "+25 к атаке"},
-    "att_turbo": {"name": "Турбо-рывок", "type": "attack", "mod_type": "mult", "value": 1.4, "desc": "Атака х1.4"},
-    "att_onetimer": {"name": "Ван-таймер", "type": "attack", "mod_type": "add", "value": 20, "desc": "+20 к атаке"},
+    # Атакующие
+    "att_onetimer": {"name": "Ван-таймер", "type": "attack", "value": 20, "counters": "def_wall", "desc": "+20 (Контрит Автобус)"},
+    "att_wrist": {"name": "Кистевой в девятку", "type": "attack", "value": 15, "counters": "def_poke", "desc": "+15 (Контрит Клюшку)"},
+    "att_office": {"name": "Бросок из офиса", "type": "attack", "value": 25, "counters": "none", "desc": "+25 (Без бонусов)"},
     
-    "def_hit": {"name": "Силовой прием", "type": "defense", "mod_type": "add", "value": 20, "desc": "+20 к защите"},
-    "def_poke": {"name": "Работа клюшкой", "type": "defense", "mod_type": "add", "value": 12, "desc": "+12 к защите"},
-    "def_block": {"name": "Блокшот", "type": "defense", "mod_type": "add", "value": 25, "desc": "+25 к защите"},
-    "def_wall": {"name": "Автобус у ворот", "type": "defense", "mod_type": "mult", "value": 1.5, "desc": "Защита х1.5"}
+    # Защитные
+    "def_block": {"name": "Жесткий Блокшот", "type": "defense", "value": 20, "counters": "att_onetimer", "desc": "+20 (Сжирает Ван-таймер)"},
+    "def_poke": {"name": "Выбивание клюшкой", "type": "defense", "value": 15, "counters": "att_office", "desc": "+15 (Контрит Офис)"},
+    "def_wall": {"name": "Автобус у ворот", "type": "defense", "value": 25, "counters": "att_wrist", "desc": "+25 (Сжирает Кистевой)"}
 }
 
 @app.route('/')
@@ -51,88 +46,92 @@ def init_deck():
 def play_round():
     data = request.json
     player_id = data.get('player_id')
-    action_id = data.get('action_id')
-    round_idx = int(data.get('round_idx')) # 1, 2 или 3
-    fatigued_players = data.get('fatigued_players', [])
-
+    p_action_id = data.get('action_id')
+    round_idx = int(data.get('round_idx'))
+    
     all_players = {**FORWARDS, **DEFENDERS}
     p_hockeyist = all_players[player_id]
-    p_action = ACTION_CARDS[action_id]
+    p_card = ACTION_CARDS[p_action_id]
     
-    # 1. Считаем силу игрока в зависимости от карты тактики
-    p_base = p_hockeyist["attack"] if p_action["type"] == "attack" else p_hockeyist["defense"]
+    # --- 1. ТУМАН ВОЙНЫ И ИИ (Скрытый выбор бота) ---
+    bot_hockeyist = None
+    bot_action_id = None
     
-    # Применяем штраф усталости
-    if player_id in fatigued_players:
-        p_base = int(p_base * 0.7)
-        
-    if p_action["mod_type"] == "add":
-        player_total = p_base + p_action["value"]
-    else:
-        player_total = int(p_base * p_action["value"])
-    player_total += random.randint(-6, 6) # Хоккейный рандом (отскок)
-
-    # 2. Логика УМНОГО БОТА (ИИ подстраивается под тип раунда)
-    if round_idx == 1:
-        # Игрок атакует -> Бот профессионально обороняется
+    # Бот выбирает логичную роль под раунд
+    if round_idx == 1: # Мы атакуем, бот защищается
         bot_hockeyist = random.choice(list(DEFENDERS.values()))
-        bot_action = random.choice([c for c in ACTION_CARDS.values() if c["type"] == "defense"])
-        bot_total = bot_hockeyist["defense"]
-    elif round_idx == 2:
-        # Бот атакует -> Игрок должен обороняться
+        bot_action_id = random.choice([k for k, v in ACTION_CARDS.items() if v["type"] == "defense"])
+    elif round_idx == 2: # Бот атакует
         bot_hockeyist = random.choice(list(FORWARDS.values()))
-        bot_action = random.choice([c for c in ACTION_CARDS.values() if c["type"] == "attack"])
-        bot_total = bot_hockeyist["attack"]
-    else:
-        # Раунд 3: Обоюдное вбрасывание, бот выбирает случайный стиль
+        bot_action_id = random.choice([k for k, v in ACTION_CARDS.items() if v["type"] == "attack"])
+    else: # Вбрасывание
         bot_hockeyist = random.choice(list(all_players.values()))
-        bot_action = random.choice(list(ACTION_CARDS.values()))
-        bot_total = bot_hockeyist["attack"] if bot_action["type"] == "attack" else bot_hockeyist["defense"]
+        bot_action_id = random.choice(list(ACTION_CARDS.keys()))
+        
+    bot_card = ACTION_CARDS[bot_action_id]
 
-    # Рассчитываем итоговую силу бота
-    if bot_action["mod_type"] == "add":
-        bot_total += bot_action["value"]
-    else:
-        bot_total = int(bot_total * bot_action["value"])
-    bot_total += random.randint(-6, 6)
+    # --- 2. БАЗОВЫЕ ОЧКИ ---
+    p_base = p_hockeyist["attack"] if p_card["type"] == "attack" else p_hockeyist["defense"]
+    bot_base = bot_hockeyist["attack"] if bot_card["type"] == "attack" else bot_hockeyist["defense"]
+    
+    player_total = p_base + p_card["value"]
+    bot_total = bot_base + bot_card["value"]
 
-    # 3. ОПРЕДЕЛЕНИЕ ИСХОДА РАУНДА
+    # --- 3. МЕХАНИКА "КРИПТОНИТА" (Камень-ножницы-бумага) ---
+    kryptonite_msg = ""
+    # Если карта игрока контрит карту бота
+    if p_card.get("counters") == bot_action_id:
+        bot_total -= 15
+        kryptonite_msg = f" Твой '{p_card['name']}' законтрил тактику бота (-15 ИИ)!"
+    # Если карта бота контрит карту игрока
+    elif bot_card.get("counters") == p_action_id:
+        player_total -= 15
+        kryptonite_msg = f" Бот прочитал тебя! Его '{bot_card['name']}' сожрал твою тактику (-15 тебе)!"
+
+    # --- 4. ХОККЕЙНЫЙ БОГ (Удача/Рандом от -8 до +8) ---
+    p_luck = random.randint(-8, 8)
+    b_luck = random.randint(-8, 8)
+    player_total += p_luck
+    bot_total += b_luck
+
+    # --- 5. РЕЗУЛЬТАТЫ ---
     round_winner = "draw"
     details = ""
 
-    if round_idx == 1: # Атака игрока
+    if round_idx == 1: # Твоя Атака
         if player_total > bot_total:
             round_winner = "player_goal"
-            details = f"ГОООЛ! {p_hockeyist['name']} пробил оборону бота!"
+            details = f"ГООЛ! {p_hockeyist['name']} пробил бота."
         else:
             round_winner = "bot_saved"
-            details = f"Сейв! Бот защитился силами {bot_hockeyist['name']}."
-            
+            details = f"Сейв бота! Твоя атака захлебнулась."
     elif round_idx == 2: # Атака бота
         if bot_total > player_total:
             round_winner = "bot_goal"
-            details = f"Пропускаем... {bot_hockeyist['name']} забивает в наши ворота."
+            details = f"ГОЛ В НАШИ ВОРОТА. {bot_hockeyist['name']} забивает."
         else:
             round_winner = "player_saved"
-            details = f"Красивый бэкчек! {p_hockeyist['name']} заблокировал атаку бота!"
-            
-    else: # Раунд 3: Свободный лед
+            details = f"Отличный блок! Ты отбился от атаки бота."
+    else: # Вбрасывание
         if player_total > bot_total:
             round_winner = "player_goal"
-            details = f"Вбрасывание за нами! {p_hockeyist['name']} заколачивает шайбу!"
+            details = "Забираем вбрасывание и забиваем!"
         elif bot_total > player_total:
             round_winner = "bot_goal"
-            details = f"Бот выиграл борьбу на пятаке. Гол забивает {bot_hockeyist['name']}."
+            details = "Бот выиграл пятак и заколотил шайбу."
         else:
             round_winner = "draw"
-            details = "Ничья на встречных курсах! Вратари потащили."
+            details = "Жесткая борьба у бортов. Ничья."
+
+    # Добавляем инфу о Криптоните в детали, если он сработал
+    details += kryptonite_msg
 
     return jsonify({
         "winner_type": round_winner,
         "details": details,
-        "player_score": player_total,
-        "bot_score": bot_total,
-        "bot_setup": f"{bot_hockeyist['name']} ({bot_action['name']})"
+        "player_score": f"{player_total} (удача {p_luck:+d})",
+        "bot_score": f"{bot_total} (удача {b_luck:+d})",
+        "bot_setup": f"{bot_hockeyist['name']} + {bot_card['name']}"
     })
 
 if __name__ == '__main__':
