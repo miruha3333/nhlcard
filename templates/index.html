@@ -3,78 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>NHL Mini App Arena</title>
+    <title>NHL Mini App</title>
     <style>
         body { font-family: 'Arial', sans-serif; background: #0b0f17; color: #fff; text-align: center; padding: 10px; margin: 0; user-select: none; }
-        .profile-box { background: #151f32; border: 1px solid #00d2ff; border-radius: 10px; max-width: 450px; margin: 0 auto 10px; padding: 10px; display: flex; justify-content: space-around; font-size: 12px; }
-        .stat-val { font-size: 16px; font-weight: bold; color: #00d2ff; }
         
-        .scoreboard { background: #151f32; border: 2px solid #00ff88; border-radius: 12px; width: 240px; margin: 10px auto; padding: 5px; }
-        .match-score { font-size: 28px; font-family: monospace; color: #00ff88; }
-        .period-text { font-size: 12px; color: #ffb703; font-weight: bold; }
+        /* Профиль */
+        .profile-box { background: #151f32; border: 1px solid #00d2ff; border-radius: 10px; max-width: 450px; margin: 0 auto 10px; padding: 8px; display: flex; justify-content: space-around; font-size: 11px; }
+        .stat-val { font-size: 14px; font-weight: bold; color: #00d2ff; }
+        
+        /* Табло */
+        .scoreboard { background: #151f32; border: 2px solid #00ff88; border-radius: 12px; max-width: 280px; margin: 10px auto; padding: 8px; }
+        .match-score { font-size: 32px; font-family: monospace; color: #00ff88; font-weight: bold; letter-spacing: 2px; }
+        .period-text { font-size: 13px; color: #ffb703; font-weight: bold; text-transform: uppercase; }
+        .round-hint { font-size: 12px; color: #00d2ff; margin-top: 4px; background: rgba(0,210,255,0.1); padding: 4px; border-radius: 4px; }
 
-        .section-title { font-size: 12px; margin: 15px 0 5px; color: #8892b0; text-transform: uppercase; }
-        .card-container { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .section-title { font-size: 11px; margin: 12px 0 6px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; }
         
-        .card { background: #121a2e; border: 2px solid #233554; border-radius: 8px; padding: 8px; width: 95px; cursor: pointer; transition: 0.15s; }
-        .card.selected { border-color: #00ff88; background: #0c261c; box-shadow: 0 0 10px rgba(0,255,136,0.2); }
-        .card.tired .card-stat { color: #ff4655 !important; font-weight: bold; } /* ПОДСВЕТКА УСТАЛОСТИ КРАСНЫМ */
+        /* Сетка игроков 2х2 под мобилки */
+        .player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 400px; margin: 0 auto; }
         
-        .card-emoji { font-size: 24px; }
-        .card-name { font-weight: bold; font-size: 11px; margin: 4px 0; height: 26px; display: flex; align-items: center; justify-content: center; }
+        /* Прокрутка карт тактики горизонтально (чтобы не занимать экран) */
+        .action-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; max-width: 400px; margin: 0 auto; scrollbar-width: none; }
+        .action-scroll::-webkit-scrollbar { display: none; }
+
+        /* Карточки */
+        .card { background: #121a2e; border: 2px solid #233554; border-radius: 10px; padding: 8px; box-sizing: border-box; cursor: pointer; transition: 0.1s; position: relative; }
+        .card.selected { border-color: #00ff88; background: #0c261c; }
+        .card.tired { border-color: #ff4655; background: #221418; }
+        .card.tired .card-stat { color: #ff4655 !important; font-weight: bold; }
+        .card.used { opacity: 0.3; pointer-events: none; border-color: #333; background: #111; }
+        
+        .card-emoji { font-size: 20px; }
+        .card-name { font-weight: bold; font-size: 12px; margin: 4px 0; }
         .card-stat { font-size: 10px; color: #00d2ff; }
         
-        .btn { background: linear-gradient(135deg, #00d2ff, #0066ff); color: white; border: none; padding: 12px 40px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; width: 80%; max-width: 300px; }
-        .btn-reset { background: #ff4655; display: none; margin: 15px auto; }
+        .tact-card { min-width: 95px; width: 95px; }
+
+        /* Кнопки */
+        .btn { background: linear-gradient(135deg, #00d2ff, #0066ff); color: white; border: none; padding: 14px; font-size: 15px; font-weight: bold; border-radius: 25px; cursor: pointer; width: 90%; max-width: 350px; margin-top: 12px; box-shadow: 0 4px 10px rgba(0,102,255,0.3); }
+        .btn-intermission { background: linear-gradient(135deg, #ffb703, #fb8500); display: none; }
+        .btn-reset { background: linear-gradient(135deg, #ff4655, #b71c1c); display: none; }
         
-        #result-box { margin-top: 15px; padding: 12px; background: #151f32; border-radius: 10px; display: none; border: 1px solid #233554; font-size: 14px; }
+        /* Лог раунда */
+        #result-box { margin: 12px auto; padding: 10px; background: #151f32; border-radius: 10px; max-width: 380px; display: none; border: 1px solid #233554; font-size: 13px; }
     </style>
 </head>
 <body>
 
-    <!-- ПРОФИЛЬ -->
+    <!-- ПРОФИЛЬ СТАТИСТИКИ -->
     <div class="profile-box">
-        <div><div class="stat-val" id="st-total">0</div><div>Матчей</div></div>
-        <div><div class="stat-val" style="color:#4ade80;" id="st-wins">0</div><div>Побед</div></div>
-        <div><div class="stat-val" style="color:#f87171;" id="st-losses">0</div><div>Луз</div></div>
+        <div><div class="stat-val" id="st-total">0</div><div>Матчи</div></div>
+        <div><div class="stat-val" style="color:#4ade80;" id="st-wins">0</div><div>Победы</div></div>
+        <div><div class="stat-val" style="color:#f87171;" id="st-losses">0</div><div>Лузы</div></div>
         <div><div class="stat-val" id="st-rate">0%</div><div>Винрейт</div></div>
     </div>
     
-    <!-- ТАБЛО -->
+    <!-- ТАБЛО И ДИНАМИКА МАТЧА -->
     <div class="scoreboard">
-        <div class="period-text" id="period-display">1-й Период</div>
+        <div class="period-text" id="period-display">1 ПЕРИОД — РАУНД 1</div>
         <div class="match-score"><span id="p-goals">0</span> : <span id="b-goals">0</span></div>
+        <div class="round-hint" id="round-hint-text">ВЫ АТАКУЕТЕ! Нужна Атака форвардов.</div>
     </div>
     
+    <!-- ИГРОВАЯ ЗОНА -->
     <div id="game-controls">
-        <div class="section-title">Твоё звено на этот матч (3Ф + 3З)</div>
-        <div class="card-container" id="players-zone"></div>
+        <div class="section-title">Твоё звено (2 Форварда + 2 Защитника)</div>
+        <div class="player-grid" id="players-zone"></div>
 
-        <div class="section-title">Тактика на период (3 случайные карты)</div>
-        <div class="card-container" id="actions-zone"></div>
+        <div class="section-title">Тактика на период (Листай вбок, сыгранные сгорают)</div>
+        <div class="action-scroll" id="actions-zone"></div>
 
-        <button class="btn" onclick="nextPeriod()">СЫГРАТЬ ПЕРИОД</button>
+        <button class="btn" id="action-btn" onclick="nextRound()">ПОДТВЕРДИТЬ СМЕНУ</button>
     </div>
 
-    <button class="btn btn-reset" id="reset-btn" onclick="startNewMatch()">СЛЕДУЮЩИЙ МАТЧ</button>
+    <!-- КНОПКИ ПЕРЕХОДОВ -->
+    <button class="btn btn-intermission" id="intermission-btn" onclick="startNextPeriod()">УЙТИ НА ПЕРЕРЫВ (В РАЗДЕВАЛКУ)</button>
+    <button class="btn btn-reset" id="reset-btn" onclick="startNewMatch()">ОТКРЫТЬ СЛЕДУЮЩИЙ МАТЧ</button>
 
+    <!-- ИНФО-БОКС СИМУЛЯЦИИ -->
     <div id="result-box">
-        <h4 id="round-details" style="margin:5px 0;">События...</h4>
-        <div style="font-size:12px; color:#ffb703;">Сила дуэли: Вы (<span id="p-power">0</span>) vs Бот (<span id="b-power">0</span>)</div>
-        <div style="font-size:11px; color:#aaa; margin-top:4px;">Выбор БОТА: <span id="bot-setup" style="color:#ff4655;">-</span></div>
+        <div id="round-details" style="font-weight:bold; margin-bottom:5px; color:#ffb703;">Гол или Сейв?</div>
+        <div style="font-size:11px; color:#ccc;">Твоя мощь: <span id="p-power" style="color:#00ff88">0</span> vs Мощь Бота: <span id="b-power" style="color:#ff4655">0</span></div>
+        <div style="font-size:11px; color:#aaa; margin-top:3px;">Защита/Атака бот-звена: <span id="bot-setup">-</span></div>
     </div>
 
     <script>
         let db = null;
-        let matchPlayers = []; // 6 хоккеистов на текущий матч
-        let fatiguedPlayers = []; // Кто уже играл и устал
+        let matchPlayers = []; 
+        let currentPeriod = 1;
+        let currentRound = 1; // Внутри периода: 1 = Мы атакуем, 2 = Бот атакует, 3 = Вбрасывание
+        let pGoals = 0, bGoals = 0;
         
         let selectedPlayer = null;
         let selectedAction = null;
-        let currentPeriod = 1;
-        let pGoals = 0, bGoals = 0;
+        
+        let fatiguedPlayers = []; // Усталость обнуляется каждый период
+        let usedCards = []; // Карты блокируются до конца периода
 
         let stats = JSON.parse(localStorage.getItem('h_stats')) || { total: 0, wins: 0, losses: 0 };
+
+        const roundHints = {
+            1: "ВЫ АТАКУЕТЕ! (Твоя Атака пробивает Оборону бота)",
+            2: "БОТ АТАКУЕТ! (Твоя Оборона сдерживает Атаку бота)",
+            3: "ВБРАСЫВАНИЕ! (Чистая дуэль сил на свободном льду)"
+        };
 
         function updateStatsUI() {
             document.getElementById('st-total').innerText = stats.total;
@@ -84,34 +116,49 @@
             document.getElementById('st-rate').innerText = `${rate}%`;
         }
 
-        // Загрузка базы данных игры при первом входе
         async function initGame() {
             const res = await fetch('/api/init_deck');
             db = await res.json();
             startNewMatch();
         }
 
-        // НАЧАЛО НОВОГО МАТЧА: Собираем случайный состав
         function startNewMatch() {
-            currentPeriod = 1; pGoals = 0; bGoals = 0;
-            fatiguedPlayers = [];
+            currentPeriod = 1; currentRound = 1; pGoals = 0; bGoals = 0;
             document.getElementById('p-goals').innerText = 0;
             document.getElementById('b-goals').innerText = 0;
-            document.getElementById('period-display').innerText = "1-й Период";
             document.getElementById('game-controls').style.display = 'block';
             document.getElementById('reset-btn').style.display = 'none';
+            document.getElementById('intermission-btn').style.display = 'none';
             document.getElementById('result-box').style.display = 'none';
 
-            // Берем 3 случайных форварда и 3 защитника
-            let fKeys = Object.keys(db.forwards).sort(() => 0.5 - Math.random()).slice(0, 3);
-            let dKeys = Object.keys(db.defenders).sort(() => 0.5 - Math.random()).slice(0, 3);
+            // Берем СЛУЧАЙНЫЕ 2 форварда и 2 защитника (Звено на матч)
+            let fKeys = Object.keys(db.forwards).sort(() => 0.5 - Math.random()).slice(0, 2);
+            let dKeys = Object.keys(db.defenders).sort(() => 0.5 - Math.random()).slice(0, 2);
             
             matchPlayers = [];
             fKeys.forEach(k => matchPlayers.push({id: k, ...db.forwards[k]}));
             dKeys.forEach(k => matchPlayers.push({id: k, ...db.defenders[k]}));
 
+            startNewPeriod();
+        }
+
+        function startNewPeriod() {
+            fatiguedPlayers = [];
+            usedCards = [];
+            selectedPlayer = null;
+            selectedAction = null;
+            
+            document.getElementById('game-controls').style.display = 'block';
+            document.getElementById('intermission-btn').style.display = 'none';
+            
+            updateRoundUI();
             renderPlayers();
             dealActionCards();
+        }
+
+        function updateRoundUI() {
+            document.getElementById('period-display').innerText = `${currentPeriod} ПЕРИОД — РАУНД ${currentRound}`;
+            document.getElementById('round-hint-text').innerText = roundHints[currentRound];
         }
 
         function renderPlayers() {
@@ -119,29 +166,28 @@
             zone.innerHTML = '';
             matchPlayers.forEach(p => {
                 let isTired = fatiguedPlayers.includes(p.id);
-                // Если уставший — добавляем класс 'tired', уменьшающий статы визуально
                 zone.innerHTML += `
                     <div class="card ${isTired ? 'tired' : ''}" id="p-${p.id}" onclick="selectPlayer('${p.id}')">
                         <div class="card-emoji">${p.image}</div>
                         <div class="card-name">${p.name}</div>
                         <div class="card-stat">
-                            ${isTired ? 'УСТАЛ (-30%)' : `АТК:${p.attack} | ЗЩТ:${p.defense}`}
+                            ${isTired ? '<span style="color:#ff4655;">УСТАЛ (-30%)</span>' : `АТК: ${p.attack} | ЗЩТ: ${p.defense}`}
                         </div>
                     </div>
                 `;
             });
         }
 
-        // СДАЧА 3 СЛУЧАЙНЫХ КАРТ ТАКТИКИ НА ПЕРИОД
         function dealActionCards() {
             const zone = document.getElementById('actions-zone');
             zone.innerHTML = '';
-            let aKeys = Object.keys(db.actions).sort(() => 0.5 - Math.random()).slice(0, 3);
+            // Выдаем 5 случайных тактик из пула на период
+            let allTactics = Object.keys(db.actions).sort(() => 0.5 - Math.random()).slice(0, 5);
             
-            aKeys.forEach(k => {
+            allTactics.forEach(k => {
                 let a = db.actions[k];
                 zone.innerHTML += `
-                    <div class="card" id="a-${k}" onclick="selectAction('${k}')">
+                    <div class="card tact-card" id="a-${k}" onclick="selectAction('${k}')">
                         <div class="card-emoji">${a.type === 'attack' ? '🔥' : '🧱'}</div>
                         <div class="card-name">${a.name}</div>
                         <div class="card-stat">${a.desc}</div>
@@ -157,14 +203,15 @@
         }
 
         function selectAction(id) {
+            if (usedCards.includes(id)) return;
             document.querySelectorAll('#actions-zone .card').forEach(c => c.classList.remove('selected'));
             document.getElementById(`a-${id}`).classList.add('selected');
             selectedAction = id;
         }
 
-        async function nextPeriod() {
+        async function nextRound() {
             if (!selectedPlayer || !selectedAction) {
-                alert("Выбери хоккеиста и карту тактики!");
+                alert("Выберите хоккеиста и карточку тактики!");
                 return;
             }
 
@@ -174,55 +221,75 @@
                 body: JSON.stringify({ 
                     player_id: selectedPlayer, 
                     action_id: selectedAction,
+                    round_idx: currentRound,
                     fatigued_players: fatiguedPlayers 
                 })
             });
             const result = await response.json();
 
-            if (result.winner === 'player') pGoals++;
-            if (result.winner === 'bot') bGoals++;
+            // Обработка голов
+            if (result.winner_type === 'player_goal') pGoals++;
+            if (result.winner_type === 'bot_goal') bGoals++;
 
             document.getElementById('p-goals').innerText = pGoals;
             document.getElementById('b-goals').innerText = bGoals;
             
+            // Вывод логов
             document.getElementById('result-box').style.display = 'block';
             document.getElementById('round-details').innerText = result.details;
             document.getElementById('p-power').innerText = result.player_score;
             document.getElementById('b-power').innerText = result.bot_score;
             document.getElementById('bot-setup').innerText = result.bot_setup;
 
-            // Хоккеист устает после использования
+            // Блокируем карту и вешаем усталость
+            usedCards.push(selectedAction);
+            document.getElementById(`a-${selectedAction}`).classList.add('used');
+            document.getElementById(`a-${selectedAction}`).classList.remove('selected');
+            
             if (!fatiguedPlayers.includes(selectedPlayer)) {
                 fatiguedPlayers.push(selectedPlayer);
             }
 
+            // Сброс выбора
             selectedPlayer = null; selectedAction = null;
-            
-            currentPeriod++;
-            if (currentPeriod <= 3) {
-                document.getElementById('period-display').innerText = `${currentPeriod}-й Период`;
+
+            // Шаг по раундам
+            if (currentRound < 3) {
+                currentRound++;
+                updateRoundUI();
                 renderPlayers();
-                dealActionCards(); // Новая сдача карт на период!
+            } else {
+                // Конец периода
+                endPeriod();
+            }
+        }
+
+        function endPeriod() {
+            document.getElementById('game-controls').style.display = 'none';
+            if (currentPeriod < 3) {
+                document.getElementById('intermission-btn').style.display = 'block';
+                document.getElementById('round-hint-text').innerText = "ПЕРИОД СЫГРАН. Команды ушли в раздевалку.";
+                currentPeriod++;
+                currentRound = 1;
             } else {
                 endMatch();
             }
         }
 
         function endMatch() {
-            document.getElementById('game-controls').style.display = 'none';
             document.getElementById('reset-btn').style.display = 'block';
             stats.total++;
             
             if (pGoals > bGoals) {
-                document.getElementById('round-details').innerText = "🏆 ФИНАЛЬНАЯ СИРЕНА: ВЫ ПОБЕДИЛИ!";
-                document.getElementById('period-display').innerText = "ПОБЕДА";
+                document.getElementById('round-hint-text').innerText = "МАТЧ ОКОНЧЕН. ВЫ ПОБЕДИЛИ!";
+                document.getElementById('period-display').innerText = "ПОБЕДА МАТЧА";
                 stats.wins++;
             } else if (pGoals < bGoals) {
-                document.getElementById('round-details').innerText = "❌ ФИНАЛЬНАЯ СИРЕНА: ПОРАЖЕНИЕ.";
-                document.getElementById('period-display').innerText = "ЛУЗ";
+                document.getElementById('round-hint-text').innerText = "МАТЧ ОКОНЧЕН. БОТ ОКАЗАЛСЯ СИЛЬНЕЕ.";
+                document.getElementById('period-display').innerText = "ПОРАЖЕНИЕ";
                 stats.losses++;
             } else {
-                document.getElementById('round-details').innerText = "🤝 ОВЕРТАЙМ: НИЧЬЯ БОЕВАЯ!";
+                document.getElementById('round-hint-text').innerText = "НИЧЬЯ В ОСНОВНОЕ ВРЕМЯ! БОЕВОЙ МАТЧ.";
                 document.getElementById('period-display').innerText = "НИЧЬЯ";
             }
             localStorage.setItem('h_stats', JSON.stringify(stats));
