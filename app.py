@@ -9,7 +9,7 @@ PLAYERS = {
     "kucherov": {"name": "Н. Кучеров", "attack": 52, "defense": 18, "image": "🪄", "tier": "Золото"},
     "bedard": {"name": "К. Бедард", "attack": 43, "defense": 15, "image": "🎯", "tier": "Серебро"},
     "michkov": {"name": "М. Мичков", "attack": 38, "defense": 12, "image": "🔥", "tier": "Бронза"},
-    "celebrini": {"name": "М. Челебрини", "attack": 35, "defense": 10, "image": "👶", "tier": "Бронза"},
+    "celebrini": {"name": "М. Селебрини", "attack": 35, "defense": 10, "image": "👶", "tier": "Бронза"},
     
     "hedman": {"name": "В. Хедман", "attack": 25, "defense": 53, "image": "🛡️", "tier": "Золото"},
     "fox": {"name": "А. Фокс", "attack": 28, "defense": 48, "image": "🦊", "tier": "Золото"},
