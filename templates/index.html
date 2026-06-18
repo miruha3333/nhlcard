@@ -5,118 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NHL Ultimate Cards</title>
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; }
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 10px; }
+        .container { max-width: 800px; margin: 0 auto; }
         
         /* Экраны SPA */
-        .screen { display: none; animation: fadeIn 0.3s; }
+        .screen { display: none; animation: fadeIn 0.2s; }
         .screen.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* Кнопки */
-        .btn { background-color: #3b82f6; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;}
-        .btn:hover { background-color: #2563eb; }
+        .btn { color: white; border: none; padding: 8px 16px; font-size: 14px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .btn:hover { opacity: 0.9; }
+        .btn-primary { background-color: #3b82f6; }
         .btn-shop { background-color: #10b981; }
-        .btn-shop:hover { background-color: #059669; }
-        .btn-secondary { background-color: #475569; }
-        .btn-secondary:hover { background-color: #334155; }
-        .btn-play { background-color: #ef4444; font-size: 20px; padding: 15px 40px; }
-        .btn-play:hover { background-color: #dc2626; }
+        .btn-secondary { background-color: #475569; padding: 6px 12px; font-size: 13px; }
+        .btn-play { background-color: #ef4444; font-size: 18px; padding: 12px 35px; border-radius: 8px; }
 
-        /* Табло счета */
-        .scoreboard { display: flex; justify-content: center; align-items: center; gap: 30px; background: #1e293b; padding: 15px; border-radius: 12px; border: 2px solid #334155; margin-bottom: 20px; }
-        .score-num { font-size: 36px; font-weight: bold; color: #fbbf24; }
-        .score-text { font-size: 20px; color: #94a3b8; }
+        /* Компактная верхняя панель */
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #1e293b; padding: 6px 12px; border-radius: 6px; }
+        .coins-text { font-size: 14px; color: #fbbf24; font-weight: bold; }
+        .status-mid { font-size: 14px; font-weight: bold; color: #3b82f6; }
 
-        /* Сетки карточек (Компактные) */
-        .grid-container { background: #1e293b; border-radius: 12px; padding: 15px; border: 1px solid #334155; margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+        /* Компактное Табло */
+        .scoreboard { display: flex; justify-content: center; align-items: center; gap: 20px; background: #1e293b; padding: 8px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 12px; }
+        .score-num { font-size: 24px; font-weight: bold; color: #fbbf24; min-width: 30px; text-align: center; }
+        .score-text { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Сетки карточек (Мини-формат) */
+        .grid-container { background: #1e293b; border-radius: 8px; padding: 10px; border: 1px solid #334155; margin-bottom: 12px; }
+        .grid-container h4 { margin: 0 0 8px 0; font-size: 13px; color: #cbd5e1; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
         
-        /* Карточка */
-        .card-item { background: #0b1120; padding: 10px; border-radius: 8px; cursor: pointer; border: 2px solid #334155; text-align: center; position: relative; transition: 0.2s;}
-        .card-item:hover:not(.fatigued) { border-color: #64748b; transform: translateY(-2px); }
-        .card-item.selected { border-color: #3b82f6; background: #1d4ed8; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        /* Мини-Карточка */
+        .card-item { background: #0b1120; padding: 6px; border-radius: 6px; cursor: pointer; border: 2px solid #334155; text-align: center; position: relative; font-size: 12px; }
+        .card-item:hover:not(.fatigued) { border-color: #4b5563; }
+        .card-item.selected { border-color: #3b82f6; background: #1e3a8a; }
         
         /* Усталость */
-        .card-item.fatigued { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%); }
-        .fatigue-badge { position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; font-size: 12px; padding: 4px 8px; border-radius: 10px; font-weight: bold; }
+        .card-item.fatigued { opacity: 0.35; cursor: not-allowed; filter: grayscale(100%); }
+        .fatigue-badge { position: absolute; top: -2px; right: -2px; background: #ef4444; color: white; font-size: 9px; padding: 1px 4px; border-radius: 4px; font-weight: bold; }
 
-        .avatar { font-size: 40px; margin-bottom: 5px; }
+        .avatar { font-size: 22px; margin-bottom: 2px; }
         .tier-Золото { color: #fbbf24; font-weight: bold; }
         .tier-Серебро { color: #cbd5e1; font-weight: bold; }
         .tier-Бронза { color: #d97706; font-weight: bold; }
 
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .balance-pill { background: #fbbf24; color: #78350f; font-weight: bold; padding: 8px 16px; border-radius: 20px; font-size: 18px; }
+        .log-box { background: #020617; padding: 10px; border-radius: 6px; margin-top: 10px; font-family: monospace; font-size: 12px; max-height: 80px; overflow-y: auto; }
     </style>
 </head>
 <body>
 
 <div class="container">
     
-    <!-- ЭКРАН 1: ГЛАВНОЕ МЕНЮ -->
     <div id="screen-menu" class="screen active">
-        <div style="text-align: center; margin-top: 50px;">
-            <h1 style="font-size: 48px; margin-bottom: 10px;">NHL ULTIMATE CARDS</h1>
-            <div class="balance-pill" style="display: inline-block; margin-bottom: 40px;">💰 Монеты: <span class="coin-display">0</span></div>
-            <br>
+        <div style="text-align: center; margin-top: 60px;">
+            <h2 style="font-size: 32px; margin-bottom: 5px; letter-spacing: 1px;">NHL ULTIMATE CARDS</h2>
+            <div style="font-size: 16px; color: #fbbf24; margin-bottom: 30px;">Монеты: <span class="coin-display">0</span></div>
             <button class="btn btn-play" onclick="startMatch()">🏒 ИГРАТЬ МАТЧ</button>
             <br><br>
-            <button class="btn btn-shop" style="font-size: 18px; padding: 12px 30px;" onclick="switchScreen('screen-shop')">🛒 МАГАЗИН ПАКОВ</button>
+            <button class="btn btn-shop" style="font-size: 15px;" onclick="switchScreen('screen-shop')">🛒 Магазин Паков</button>
         </div>
     </div>
 
-    <!-- ЭКРАН 2: МАГАЗИН -->
     <div id="screen-shop" class="screen">
         <div class="header-top">
-            <h2>🛒 Магазин Паков</h2>
+            <span style="font-size: 14px; font-weight: bold;">🛒 Магазин</span>
             <div style="display:flex; gap:15px; align-items:center;">
-                <div class="balance-pill">💰 <span class="coin-display">0</span></div>
-                <button class="btn btn-secondary" onclick="switchScreen('screen-menu')">Назад в меню</button>
+                <div class="coins-text">Монеты: <span class="coin-display">0</span></div>
+                <button class="btn btn-secondary" onclick="switchScreen('screen-menu')">Назад</button>
             </div>
         </div>
-        <div style="text-align: center; background: #1e293b; padding: 40px; border-radius: 12px;">
-            <div style="font-size: 80px;">🎁</div>
-            <h3>Стандартный Пак</h3>
-            <p style="color: #94a3b8;">Гарантирован 1 игрок и 1 карта тактики.<br>Шанс на золото: 15%</p>
+        <div style="text-align: center; background: #1e293b; padding: 25px; border-radius: 8px;">
+            <div style="font-size: 50px; margin-bottom: 10px;">🎁</div>
+            <h4 style="margin: 0 0 5px 0;">Стандартный Пак</h4>
+            <p style="color: #94a3b8; font-size: 13px; margin: 0 0 15px 0;">1 игрок + 1 тактика.<br>Шанс на золото: 15%</p>
             <button class="btn btn-shop" onclick="buyPack()">ОТКРЫТЬ ЗА 150 МОНЕТ</button>
         </div>
-        <div id="shop-result" style="margin-top: 20px; text-align: center; font-size: 18px; color: #10b981; font-weight: bold;"></div>
+        <div id="shop-result" style="margin-top: 15px; text-align: center; font-size: 14px; color: #10b981; font-weight: bold;"></div>
     </div>
 
-    <!-- ЭКРАН 3: МАТЧ -->
     <div id="screen-game" class="screen">
         <div class="header-top">
-            <button class="btn btn-secondary" onclick="endMatch(true)">Сдаться и уйти</button>
-            <h2 id="period-display" style="color: #3b82f6; margin: 0;">Период 1 из 3</h2>
-            <div class="balance-pill">💰 <span class="coin-display">0</span></div>
+            <button class="btn btn-secondary" onclick="endMatch(true)">Назад</button>
+            <div id="period-display" class="status-mid">Период 1 · Атака ⚔️</div>
+            <div class="coins-text">Монеты: <span class="coin-display">0</span></div>
         </div>
 
-        <!-- ТАБЛО СЧЕТА -->
         <div class="scoreboard">
-            <div class="score-text">ТВОЯ КОМАНДА</div>
+            <div class="score-text">Ты</div>
             <div class="score-num" id="score-player">0</div>
-            <div class="score-text" style="color: #64748b;">:</div>
+            <div class="score-text" style="color: #475569;">:</div>
             <div class="score-num" id="score-bot">0</div>
-            <div class="score-text">КОМАНДА ИИ</div>
+            <div class="score-text">ИИ</div>
         </div>
 
-        <!-- СЕТКА ИГРОКОВ -->
         <div class="grid-container">
-            <h3 style="margin-top: 0;">🏃 Твой Ростер <small style="color: #94a3b8; font-weight: normal;">(Уставшие пропускают 1 смену)</small></h3>
+            <h4>🏃 Твой Ростер</h4>
             <div id="players-list" class="grid"></div>
         </div>
 
-        <!-- СЕТКА КАРТ -->
         <div class="grid-container">
-            <h3 style="margin-top: 0;">🃏 Выбор Тактики</h3>
+            <h4>🃏 Тактика</h4>
             <div id="cards-list" class="grid"></div>
         </div>
 
-        <button class="btn" style="width: 100%; font-size: 20px; padding: 15px;" onclick="submitTurn()">ПОДТВЕРДИТЬ СМЕНУ</button>
+        <button class="btn btn-primary" style="width: 100%; font-size: 16px; padding: 10px;" onclick="submitTurn()">ПОДТВЕРДИТЬ ХОД</button>
 
-        <div style="background: #020617; padding: 15px; border-radius: 8px; margin-top: 15px; font-family: monospace;" id="match-log">
-            Здесь будет протокол матча...
+        <div class="log-box" id="match-log">
+            Ожидание выбора...
         </div>
     </div>
 
@@ -124,11 +120,13 @@
 
 <script>
 let serverPlayers = {}, serverCards = {};
-let profile = JSON.parse(localStorage.getItem('nhl_v3')) || { coins: 300, players: ["celebrini", "levshunov", "michkov"], actions: ["att_wrist", "def_poke", "att_onetimer"] };
+let profile = JSON.parse(localStorage.getItem('nhl_v4')) || { coins: 300, players: ["celebrini", "levshunov", "michkov"], actions: ["att_wrist", "def_poke", "att_onetimer"] };
 
-// Состояние текущего матча
-let matchState = { period: 1, pScore: 0, bScore: 0, fatiguedPlayer: null };
+// Состояние текущего матча (Период: 1-3, Раунд внутри периода: 1-Атака, 2-Защита, 3-Вбрасывание)
+let matchState = { period: 1, round: 1, pScore: 0, bScore: 0, fatiguedPlayer: null };
 let selectedPlayer = null, selectedCard = null;
+
+const ROUND_NAMES = { 1: "Атака ⚔️", 2: "Защита 🛡️", 3: "Вбрасывание 🏒" };
 
 async function init() {
     let res = await fetch('/api/init_deck');
@@ -138,7 +136,7 @@ async function init() {
 }
 
 function updateUI() {
-    localStorage.setItem('nhl_v3', JSON.stringify(profile));
+    localStorage.setItem('nhl_v4', JSON.stringify(profile));
     document.querySelectorAll('.coin-display').forEach(el => el.innerText = profile.coins);
 }
 
@@ -150,19 +148,20 @@ function switchScreen(screenId) {
 
 function startMatch() {
     if(profile.players.length < 2) {
-        alert("В команде должно быть минимум 2 игрока из-за усталости! Купите пак.");
+        alert("В команде должно быть минимум 2 игрока из-за системы усталости!");
         return;
     }
-    matchState = { period: 1, pScore: 0, bScore: 0, fatiguedPlayer: null };
+    matchState = { period: 1, round: 1, pScore: 0, bScore: 0, fatiguedPlayer: null };
     document.getElementById('score-player').innerText = 0;
     document.getElementById('score-bot').innerText = 0;
-    document.getElementById('match-log').innerHTML = "Матч начался! Выберите звено.";
+    document.getElementById('match-log').innerHTML = "Матч начался! Первый период.";
+    selectedPlayer = null; selectedCard = null;
     updateMatchUI();
     switchScreen('screen-game');
 }
 
 function updateMatchUI() {
-    document.getElementById('period-display').innerText = `Период ${matchState.period} из 3`;
+    document.getElementById('period-display').innerText = `Период ${matchState.period} · ${ROUND_NAMES[matchState.round]}`;
     
     // Рендер игроков
     let pList = document.getElementById('players-list');
@@ -170,16 +169,16 @@ function updateMatchUI() {
     profile.players.forEach(id => {
         let p = serverPlayers[id]; if(!p) return;
         let isFatigued = (id === matchState.fatiguedPlayer);
-        let fatigueHtml = isFatigued ? '<div class="fatigue-badge">Устал 💤</div>' : '';
+        let fatigueHtml = isFatigued ? '<div class="fatigue-badge">💤</div>' : '';
         let classes = `card-item ${isFatigued ? 'fatigued' : ''} ${id === selectedPlayer ? 'selected' : ''}`;
         
         pList.innerHTML += `
             <div class="${classes}" id="p-${id}" onclick="${isFatigued ? '' : `selectItem('player', '${id}')`}">
                 ${fatigueHtml}
                 <div class="avatar">${p.image}</div>
-                <div><strong>${p.name}</strong></div>
-                <div class="tier-${p.tier}" style="font-size:12px;">${p.tier}</div>
-                <div style="font-size:12px; margin-top:5px;">Атк:${p.attack} | Защ:${p.defense}</div>
+                <div style="font-weight:bold; white-space:nowrap; overflow:hidden;">${p.name}</div>
+                <div class="tier-${p.tier}" style="font-size:10px;">${p.tier}</div>
+                <div style="font-size:10px; color:#94a3b8; margin-top:2px;">А:${p.attack} З:${p.defense}</div>
             </div>`;
     });
 
@@ -192,7 +191,7 @@ function updateMatchUI() {
         cList.innerHTML += `
             <div class="card-item ${id === selectedCard ? 'selected' : ''}" id="c-${id}" onclick="selectItem('card', '${id}')">
                 <div style="color: ${isAtk ? '#ef4444' : '#3b82f6'}; font-weight:bold;">${isAtk ? '⚔️' : '🛡️'} ${c.name}</div>
-                <div style="font-size:11px; margin-top:5px; color:#94a3b8;">${c.desc}</div>
+                <div style="font-size:10px; color:#94a3b8; margin-top:2px;">${c.desc.split(' ')[0]} ${c.desc.split(' ')[1] || ''}</div>
             </div>`;
     });
 }
@@ -208,32 +207,38 @@ async function submitTurn() {
     
     let res = await fetch('/play', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ player_id: selectedPlayer, action_id: selectedCard, round_idx: matchState.period })
+        body: JSON.stringify({ player_id: selectedPlayer, action_id: selectedCard, round_idx: matchState.round })
     });
     let result = await res.json();
     
-    // Обновляем счет матча
     if(result.is_win) matchState.pScore++;
-    else if (!result.is_tie && !result.is_win) matchState.bScore++; // Защита от ничьей
+    else if (!result.is_tie && !result.is_win) matchState.bScore++; 
 
     document.getElementById('score-player').innerText = matchState.pScore;
     document.getElementById('score-bot').innerText = matchState.bScore;
     
     document.getElementById('match-log').innerHTML = `
-        <strong>Период ${matchState.period}:</strong> ${result.details}<br>
-        <strong>Бот:</strong> ${result.bot_setup} (Счет раунда: ${result.bot_score})<br>
-        <strong>Ты:</strong> Счет раунда: ${result.player_score}
+        <strong>П${matchState.period} (${ROUND_NAMES[matchState.round]}):</strong> ${result.details}<br>
+        <strong>ИИ:</strong> ${result.bot_setup}
     `;
 
-    // Усталость: текущий игрок устает, прошлый отдыхает
+    // Механика усталости: игрок засыпает на ОДИН следующий ход
     matchState.fatiguedPlayer = selectedPlayer;
     selectedPlayer = null; selectedCard = null;
     
-    matchState.period++;
+    // Продвигаем внутренний раунд
+    matchState.round++;
     
+    // Если прошли все 3 раунда (Атака, Защита, Вбрасывание), переходим к следующему периоду
+    if(matchState.round > 3) {
+        matchState.round = 1;
+        matchState.period++;
+    }
+    
+    // Конец матча после 3 периодов (всего 9 ходов)
     if(matchState.period > 3) {
-        setTimeout(() => endMatch(false), 2000); // Конец матча через 2 сек
-        document.getElementById('match-log').innerHTML += `<br><br><span style="color:#fbbf24;">Матч окончен! Подводим итоги...</span>`;
+        setTimeout(() => endMatch(false), 1500);
+        document.getElementById('match-log').innerHTML += `<br><span style="color:#fbbf24; font-weight:bold;">Матч завершен! Подсчет очков...</span>`;
     } else {
         updateMatchUI();
     }
@@ -242,13 +247,13 @@ async function submitTurn() {
 function endMatch(surrendered) {
     let msg = "";
     if(surrendered) {
-        profile.coins += 5; msg = "Ты сдался. Утешительные 5 монет.";
+        profile.coins += 5; msg = "Матч прерван. Награда: 5 монет.";
     } else if(matchState.pScore > matchState.bScore) {
-        profile.coins += 50; msg = `ПОБЕДА в матче (${matchState.pScore}:${matchState.bScore})! Получено 50 монет.`;
+        profile.coins += 60; msg = `ПОБЕДА (${matchState.pScore}:${matchState.bScore})! Награда: 60 монет.`;
     } else if(matchState.pScore < matchState.bScore) {
-        profile.coins += 10; msg = `Поражение (${matchState.pScore}:${matchState.bScore}). Получено 10 монет.`;
+        profile.coins += 15; msg = `Поражение (${matchState.pScore}:${matchState.bScore}). Награда: 15 монет.`;
     } else {
-        profile.coins += 20; msg = `Ничья (${matchState.pScore}:${matchState.bScore}). Получено 20 монет.`;
+        profile.coins += 25; msg = `Ничья (${matchState.pScore}:${matchState.bScore}). Награда: 25 монет.`;
     }
     alert(msg);
     updateUI();
@@ -265,7 +270,7 @@ async function buyPack() {
     if(!profile.actions.includes(drop.card.id)) profile.actions.push(drop.card.id);
     
     updateUI();
-    document.getElementById('shop-result').innerHTML = `Выпал: ${drop.player.data.name} [${drop.player.data.tier}] ${drop.player.data.image}<br>Тактика: ${drop.card.data.name}`;
+    document.getElementById('shop-result').innerHTML = `Выпал: ${drop.player.data.name} [${drop.player.data.tier}]<br>Тактика: ${drop.card.data.name}`;
 }
 
 window.onload = init;
