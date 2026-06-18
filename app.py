@@ -4,23 +4,19 @@ from flask import Flask, jsonify, request, render_template
 
 app = Flask(__name__, template_folder='templates')
 
-# БАЗА ИГРОКОВ (Эмодзи вместо картинок для стабильности)
 PLAYERS = {
-    # ФОРВАРДЫ
     "mcdavid": {"name": "К. Макдэвид", "attack": 55, "defense": 20, "image": "⚡", "tier": "Золото"},
     "kucherov": {"name": "Н. Кучеров", "attack": 52, "defense": 18, "image": "🪄", "tier": "Золото"},
     "bedard": {"name": "К. Бедард", "attack": 43, "defense": 15, "image": "🎯", "tier": "Серебро"},
     "michkov": {"name": "М. Мичков", "attack": 38, "defense": 12, "image": "🔥", "tier": "Бронза"},
     "celebrini": {"name": "М. Челебрини", "attack": 35, "defense": 10, "image": "👶", "tier": "Бронза"},
     
-    # ЗАЩИТНИКИ
     "hedman": {"name": "В. Хедман", "attack": 25, "defense": 53, "image": "🛡️", "tier": "Золото"},
     "fox": {"name": "А. Фокс", "attack": 28, "defense": 48, "image": "🦊", "tier": "Золото"},
     "mintyukov": {"name": "П. Минтюков", "attack": 20, "defense": 41, "image": "🏒", "tier": "Серебро"},
     "levshunov": {"name": "А. Левшунов", "attack": 15, "defense": 34, "image": "🧱", "tier": "Бронза"}
 }
 
-# БАЗА КАРТ ТАКТИКИ
 ACTION_CARDS = {
     "att_onetimer": {"name": "Ван-таймер", "type": "attack", "value": 20, "counters": "def_block", "desc": "+20 Атака (Контрится Блоком)"},
     "att_wrist": {"name": "Кистевой", "type": "attack", "value": 15, "counters": "def_wall", "desc": "+15 Атака (Контрится Автобусом)"},
@@ -79,7 +75,7 @@ def play_round():
     kryptonite_msg = ""
     if p_card.get("counters") == bot_card_id:
         bot_total -= 15
-        kryptonite_msg = f" 🎯 Твоя тактика законтрила бота (-15)!"
+        kryptonite_msg = f" 🎯 Контр-тактика (-15 ИИ)!"
     elif bot_card.get("counters") == p_action_id:
         player_total -= 15
         kryptonite_msg = f" ❌ Бот прочитал тебя (-15 тебе)!"
@@ -92,15 +88,13 @@ def play_round():
     is_tie = player_total == bot_total and round_idx != 2
     
     if is_tie:
-        details = "Ничья в раунде! Вратари на высоте."
-        is_win = False # Ничья не дает очка
+        details = "Ничья! Вратари тащат."
     elif round_idx == 1:
-        details = "ГООЛ! Ты пробил защиту!" if is_win else "Сейв! Бот отбился."
+        details = "ГООЛ! Ты забил!" if is_win else "Сейв! Бот отбился."
     elif round_idx == 2:
-        details = "Сейв! Ты остановил атаку!" if is_win else "Гол в твои ворота!"
+        details = "Сейв! Ты заблокировал атаку!" if is_win else "Гол в твои ворота..."
     else:
-        # Вот здесь была та самая сломанная строка
-        details = "Победа на вбрасывании!" if is_win else "Бот выиграл вбрасывание."
+        details = "Выиграл вбрасывание!" if is_win else "Бот забрал шайбу."
         
     details += kryptonite_msg
     
@@ -110,7 +104,7 @@ def play_round():
         "details": details,
         "player_score": player_total,
         "bot_score": bot_total,
-        "bot_setup": f"{bot_hockeyist['name']} [{bot_hockeyist['tier']}] + {bot_card['name']}"
+        "bot_setup": f"{bot_hockeyist['name']} + {bot_card['name']}"
     })
 
 if __name__ == '__main__':
